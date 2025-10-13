@@ -1,0 +1,3 @@
+cadastro de eventos
+
+cada evento possui um minicurso, pode avaliar os minicursos, cadastro de usuário, ementa, entre outros
