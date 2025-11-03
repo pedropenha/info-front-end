@@ -1,0 +1,142 @@
+/* src/assets/global.css - VERSÃO CLEAN */
+
+/* --- Variáveis e Reset Básico --- */
+:root {
+    --color-primary: #4e9e47; /* INFOESTE Green */
+    --color-secondary: #007bff; /* Blue para botões de detalhes/ação */
+    --color-dark: #363636;
+    --color-light-bg: #f8f8f8;
+    --border-radius: 4px;
+    --spacing: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    background-color: #f5f5f5;
+    color: var(--color-dark);
+}
+
+/* --- Layout Estrutural Base (Usado no App.vue e Views) --- */
+.section {
+    padding: 3rem 1.5rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* --- Tipografia Global --- */
+.title {
+    font-weight: 600;
+}
+.title-h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+/* --- Navbar Base (Estilo fixo definido no AppNavbar.vue) --- */
+/* Mantemos esta área limpa, pois o AppNavbar.vue tem seus próprios estilos scoped */
+
+/* --- Utilidades --- */
+.has-text-centered { text-align: center; }
+.has-text-right { text-align: right; }
+.has-text-primary { color: var(--color-primary) !important; }
+.mb-5 { margin-bottom: 1.5rem; }
+
+/* --- Elementos de Formulário Base Comuns --- */
+
+/* Input e Select base para herança nos componentes */
+.input-base,
+.select-base select {
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    line-height: 1.2;
+}
+
+/* Base para a nova classe de botão (.btn) */
+.btn {
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: background-color 0.3s, transform 0.1s;
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+/* --- Estilos de Botão Específicos (Usados no AppNavbar e Filtros) --- */
+
+.btn-primary { /* Filtrar / Login */
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+.btn-primary:hover {
+    background-color: #438a3d;
+    border-color: #438a3d;
+}
+
+.btn-secondary { /* Ver Detalhes (no card) */
+    background-color: var(--color-secondary);
+    color: white;
+    border-color: var(--color-secondary);
+}
+.btn-secondary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+.btn-light { /* Limpar Filtros / Perfil */
+    background-color:#f07545;
+    color:white;
+    border: 1px solid #ccc;
+}
+.btn-light:hover {
+    background-color: #ffc400;
+}
+
+.btn-full-width {
+    width: 100%;
+}
+
+/* --- Tags --- */
+.tag {
+    display: inline-block;
+    padding: 4px 12px;
+    margin-right: 5px;
+    border-radius: 15px; /* Bordas arredondadas */
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* --- Card Base --- */
+.card {
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 15px; 
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.tag-info { background-color: #e6f7ff; color: #0088cc; } /* Azul Claro */
+.tag-dark { background-color: #f0f0f0; color: #555; } /* Cinza */
+.tag-primary { background-color: #e0f8e0; color: var(--color-primary); } /* Verde Claro */
