@@ -3,7 +3,14 @@
     <div class="field">
         <label :for="this.id" class="label">{{ this.label }}</label>
         <div class="control">
-            <input :type="this.type" :placeholder="this.placeholder" :id="this.id" />
+            <input 
+                :type="this.type" 
+                :placeholder="this.placeholder" 
+                :id="this.id"
+                :value="modelValue"
+                @input="$emit('update:modelValue', $event.target.value)"
+                class="input"
+            />
         </div>
     </div>
 
@@ -30,7 +37,12 @@ export default {
             type: String,
             required: true,
         },
+        modelValue: {
+            type: String,
+            default: ''
+        }
     },
+    emits: ['update:modelValue']
 };
 
 </script>

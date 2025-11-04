@@ -24,21 +24,52 @@
                 </div>
 
                 <div class="menu-content">
+                    <!-- Informações do usuário logado -->
+                    <div v-if="isLoggedIn" class="user-info">
+                        <img 
+                            :src="userFoto || defaultAvatar" 
+                            alt="Foto do usuário"
+                            class="user-avatar"
+                        />
+                        <p class="user-greeting">Olá, <strong>{{ userName }}</strong></p>
+                    </div>
+
                     <router-link to="/cursos" class="menu-item" @click="closeMenu">
                         Catálogo de Cursos
                     </router-link>
-                    <router-link to="/perfil" class="menu-item" @click="closeMenu">
+                    <router-link v-if="isLoggedIn" to="/perfil" class="menu-item" @click="closeMenu">
                         Meu Perfil
                     </router-link>
                     <router-link to="/sobre" class="menu-item" @click="closeMenu">
                         Sobre o Evento
                     </router-link>
+
+                    <!-- Menu Admin - Integrado ao estilo existente -->
+                    <template v-if="isAdmin">
+                        <div class="admin-divider">ADMINISTRAÇÃO</div>
+                        <router-link to="/admin/usuarios/novo" class="menu-item" @click="closeMenu">
+                            Cadastrar Usuário
+                        </router-link>
+                        <router-link to="/admin/usuarios" class="menu-item" @click="closeMenu">
+                            Gerenciar Usuários
+                        </router-link>
+                        <router-link to="/admin/cursos/novo" class="menu-item" @click="closeMenu">
+                            Cadastrar Curso
+                        </router-link>
+                        <router-link to="/admin/cursos" class="menu-item" @click="closeMenu">
+                            Gerenciar Cursos
+                        </router-link>
+                    </template>
                     
                     <div class="menu-spacer"></div>
 
-                    <router-link to="/" class="menu-item btn-menu-auth" @click="closeMenu">
-                        Login / Sair
+                    <!-- Botão de Login ou Sair -->
+                    <router-link v-if="!isLoggedIn" to="/" class="menu-item btn-menu-login" @click="closeMenu">
+                        Login
                     </router-link>
+                    <button v-else class="menu-item btn-menu-logout" @click="handleLogout">
+                        Sair
+                    </button>
                 </div>
             </div>
         </Transition>
@@ -53,7 +84,20 @@ export default {
     data() {
         return {
             isMenuOpen: false,
+            isLoggedIn: false,
+            isAdmin: false,
+            userName: '',
+            userFoto: null,
+            defaultAvatar: 'https://via.placeholder.com/48x48/4e9e47/ffffff?text=U'
         };
+    },
+    mounted() {
+        this.checkUserStatus();
+        // Escutar mudanças no localStorage
+        window.addEventListener('storage', this.checkUserStatus);
+    },
+    beforeUnmount() {
+        window.removeEventListener('storage', this.checkUserStatus);
     },
     methods: {
         toggleMenu() {
@@ -61,6 +105,45 @@ export default {
         },
         closeMenu() {
             this.isMenuOpen = false;
+        },
+        checkUserStatus() {
+            const user = localStorage.getItem('user');
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    this.isLoggedIn = true;
+                    this.userName = userData.nome || 'Usuário';
+                    this.userFoto = userData.foto || null;
+                    this.isAdmin = userData.nivel === 'admin';
+                } catch (error) {
+                    this.isLoggedIn = false;
+                    this.userName = '';
+                    this.userFoto = null;
+                    this.isAdmin = false;
+                }
+            } else {
+                this.isLoggedIn = false;
+                this.userName = '';
+                this.userFoto = null;
+                this.isAdmin = false;
+            }
+        },
+        handleLogout() {
+            // Remover dados do usuário
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            
+            // Atualizar estado
+            this.isLoggedIn = false;
+            this.userName = '';
+            this.userFoto = null;
+            this.isAdmin = false;
+            
+            // Fechar menu
+            this.closeMenu();
+            
+            // Redirecionar para login
+            this.$router.push('/');
         },
     },
 };
@@ -188,14 +271,90 @@ export default {
     flex-grow: 1; 
 }
 
-.btn-menu-auth {
+/* --- Divisor Admin --- */
+.admin-divider {
+    padding: 15px 0;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* --- Informações do usuário --- */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #4e9e47;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #4e9e47;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-greeting {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.user-greeting strong {
+    color: #4e9e47;
+}
+
+/* --- Botão de Login (Verde) --- */
+.btn-menu-login {
     margin-top: 20px;
     padding: 12px 15px;
     text-align: center;
     background-color: var(--color-primary);
     color: white;
-    border-radius: 4px;
+    border-radius: 8px;
     font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-menu-login:hover {
+    background-color: #3d7d38;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 158, 71, 0.3);
+}
+
+/* --- Botão de Logout (Vermelho) --- */
+.btn-menu-logout {
+    margin-top: 20px;
+    padding: 12px 15px;
+    text-align: center;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+.btn-menu-logout:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 /* --- Overlay e Animação --- */
