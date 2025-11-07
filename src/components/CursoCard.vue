@@ -1,5 +1,5 @@
 <template>
-    <div class="curso-card" @click="$emit('visualizar-detalhes', curso.id)">
+    <div class="curso-card">
         <div class="card-body">
             <h3 class="card-title">{{ curso.nome }}</h3>
             <p class="card-subtitle">Instrutor: {{ curso.instrutores }}</p>
@@ -14,9 +14,10 @@
                 <span class="tag tag-primary">{{ curso.faixaEtaria }}</span>
             </div>
 
+            <!-- Botão para visualizar detalhes -->
             <button 
                 class="btn btn-secondary btn-full-width" 
-                @click.stop="$emit('visualizar-detalhes', curso.id)">
+                @click.stop="$emit('visualizar-detalhes', curso.id || curso._id)">
                 Ver Detalhes
             </button>
         </div>
@@ -77,7 +78,6 @@ export default {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #f0f0f0; 
-
 }
 
 .card-description {
@@ -94,5 +94,4 @@ export default {
     flex-wrap: wrap;
     gap: 5px; 
 }
-
 </style>

@@ -1,15 +1,14 @@
 <template>
     <div class="filtros-wrapper">
-
-
+        
         <input 
             class="input-search" 
             type="text" 
             :value="buscaTermo" 
             @input="$emit('update:buscaTermo', $event.target.value)" 
-            placeholder="Buscar curso, tecnologia ou instrutor..."
+            placeholder="Buscar curso ou instrutor..."
         />
-               
+        
         <div class="select-wrapper select-local">
             <select :value="filtroLocal" @change="$emit('update:filtroLocal', $event.target.value)" class="select-filter">
                 <option value="">Localização (Todos)</option>
@@ -36,7 +35,6 @@
             </select>
         </div>
 
-        
         <button class="btn btn-light" @click="$emit('limpar-filtros')">
             Limpar Filtros
         </button>
@@ -63,25 +61,28 @@ export default {
 </script>
 
 <style scoped>
+/* --- Estilos do Filtros (Futurista e Minimalista com Contraste) --- */
 .filtros-wrapper {
+    /* MANTIDO o estilo de container que gera a sombra flutuante */
     display: flex;
     gap: 12px; 
     padding: 20px;
     background-color: white; 
     border-radius: 12px;
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
     flex-wrap: wrap;
     align-items: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* Campos de Busca (Input) e Proficiência */
-.input-search {
+/* Campos de Entrada e Seleção (Destaque e Contraste) */
+.input-search, .select-filter {
     flex-grow: 1;
     min-width: 150px; 
     padding: 12px 15px;
     border-radius: 8px;
+    
+    /* CORREÇÃO DE CONTRASTE */
     background-color: #f7f7f7; 
     border: 1px solid #e5e5e5;
     box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -89,42 +90,26 @@ export default {
     transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
 }
 
+/* Estilo Chip para os Selects */
 .select-filter {
-    /* Base do estilo Chip */
-    min-width: 130px; 
-    padding: 12px 15px;
-    border-radius: 50px; /* Bordas arredondadas fortes para visual de chip/botão */
-    
+    border-radius: 50px; /* Estilo chip */
     background-color: white; 
     border: 1px solid var(--color-primary); 
-    
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); 
     
-    transition: all 0.3s ease;
-    
-    /* Requisitos de Select */
     appearance: none; 
     -webkit-appearance: none;
     -moz-appearance: none;
     cursor: pointer;
 }
 
-/* Efeito de Foco Limpo para o input-search */
-.input-search:focus {
+/* Efeito de Foco (para ambos os tipos de campo) */
+.input-search:focus, .select-filter:focus {
     outline: none;
     border-color: var(--color-primary); 
     box-shadow: 0 0 0 3px rgba(78, 158, 71, 0.2); 
-    background-color: white; /* Volta a ser branco no foco */
+    background-color: white;
 }
-
-/* Efeito de Foco para o select-filter (Ação de Chip) */
-.select-filter:focus {
-    outline: none;
-    border-color: #438a3d; 
-    box-shadow: 0 0 0 3px rgba(78, 158, 71, 0.2); 
-    background-color: #f0fff0; 
-}
-
 
 .select-wrapper {
     min-width: 180px;
@@ -132,13 +117,10 @@ export default {
     position: relative;
 }
 
-/* --- Botão Limpar Filtros --- */
 .btn-light {
     border-radius: 50px; 
 }
 
-
-/* Media Query para responsividade */
 @media (max-width: 600px) {
     .select-filter {
         min-width: 48%;

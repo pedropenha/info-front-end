@@ -8,10 +8,15 @@
                 v-model:filtroLocal="filtroLocal"
                 v-model:filtroFaixaEtaria="filtroFaixaEtaria"
                 v-model:filtroHorario="filtroHorario"
-                v-model:filtroProficiencia="filtroProficiencia"
                 @limpar-filtros="limparFiltros"
             />
-
+            
+            <FiltroProficienciaTags 
+                v-model:modelValue="proficienciasSelecionadas"
+                @filter-changed="buscarCursos"
+                :sugestoes="sugestoesTags"  
+                />
+            
             <div v-if="carregando" class="status-message loading">
                 Carregando cursos...
             </div>
@@ -54,7 +59,8 @@
                     </button>
                 </div>
             </div>
-            </div>
+            
+        </div>
     </div>
 </template>
 
@@ -64,23 +70,25 @@ import debounce from 'lodash/debounce';
 
 import FiltroCursos from './FiltroCursos.vue'; 
 import CursoCard from './CursoCard.vue'; 
+import FiltroProficienciaTags from './FiltroProficienciaTags.vue';
 
 export default {
     name: "CatalogoCursosView", 
     components: {
         FiltroCursos,
         CursoCard,
+        FiltroProficienciaTags,
     },
     data() {
         return {
             cursos: [], 
-            
-            // ESTADOS DE FILTRO (Busca Unificada e Filtros Dedicados)
-            buscaTermo: '', // Usado para buscar Curso, Instrutor, Tecnologia
+            sugestoesTags: [],
+            buscaTermo: '', 
             filtroLocal: '', 
             filtroFaixaEtaria: '', 
             filtroHorario: '', 
-            
+            proficienciasSelecionadas: [], 
+
             // ESTADOS DE PAGINAÇÃO:
             paginaAtual: 1,
             limitePorPagina: 9, 
@@ -93,8 +101,8 @@ export default {
         };
     },
     created() {
+        this.carregarSugestoes(); // 🛑 NOVO MÉTODO CHAMADO AQUI
         this.buscarCursos();
-        // Cria a versão debounced (300ms de espera)
         this.buscarCursosDebounced = debounce(this.buscarCursos, 300);
     },
     watch: {
@@ -116,20 +124,41 @@ export default {
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
-        // Removemos os watches de filtroProficiencia e filtroInstrutor
+        // NOVO WATCH para o filtro de tags (Array de Strings)
+        proficienciasSelecionadas: { 
+            deep: true,
+            handler() {
+                this.paginaAtual = 1; 
+                this.buscarCursos(); 
+            }
+        }
     },
     methods: {
-        async buscarCursos() {
+
+        async carregarSugestoes() {
+            try {
+                const response = await axios.get(`${this.API_BASE_URL}/tags`);
+                this.sugestoesTags = response.data;
+            } catch (error) {
+                console.error("Erro ao carregar sugestões de tags:", error);
+                this.sugestoesTags = []; 
+            }
+        },
+
+       async buscarCursos() {
             this.carregando = true;
             this.erro = null;
             
             const params = new URLSearchParams();
-            
-            // ADICIONA O TERMO DE BUSCA UNIFICADO
-            if (this.buscaTermo) { 
-                params.append('busca', this.buscaTermo); 
+
+            // ADICIONA A BUSCA UNIFICADA
+            if (this.buscaTermo) { params.append('busca', this.buscaTermo); }
+
+            // ADICIONA AS PROFICIÊNCIAS SELECIONADAS (Array de Strings)
+            if (this.proficienciasSelecionadas.length > 0) {
+                params.append('proficiencias', this.proficienciasSelecionadas.join(',')); // Envia as tags como uma string separada por vírgulas
             }
-            
+
             // Adiciona filtros dedicados
             if (this.filtroLocal) { params.append('local', this.filtroLocal); }
             if (this.filtroFaixaEtaria) { params.append('faixaEtaria', this.filtroFaixaEtaria); }
@@ -167,6 +196,7 @@ export default {
             this.filtroLocal = '';
             this.filtroFaixaEtaria = '';
             this.filtroHorario = '';
+            this.proficienciasSelecionadas = []; // LIMPA AS TAGS
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
@@ -179,11 +209,22 @@ export default {
         },
 
         visualizarDetalhes(cursoId) {
-            this.$router.push(`/cursos/${cursoId}`); 
+            console.log('ID do Curso (Catálogo):', cursoId); // Útil para debug
+            if (cursoId) {
+                // 🛑 CORREÇÃO/OTIMIZAÇÃO AQUI: Usando o nome da rota 'detalhesCurso'
+                this.$router.push({ 
+                    name: 'detalhesCurso', 
+                    params: { id: cursoId } 
+                });
+            } else {
+                console.error('ID do curso não está definido ou é inválido para navegação.');
+            }
         }
+    
     },
 };
 </script>
+
 <style scoped>
 /* --- Estilos da Paginação --- */
 .paginacao-wrapper {
@@ -197,7 +238,6 @@ export default {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-
 
 .paginacao-info {
     font-size: 1rem;
@@ -247,7 +287,7 @@ export default {
     transition: all 0.4s ease-out; 
 }
 .list-leave-active { 
-    position: absolute; /* Necessário para animar itens de saída corretamente no grid */
+    position: absolute; 
     transition: all 0.4s ease-in; 
 }
 .list-move { 
@@ -273,6 +313,11 @@ export default {
     border: 1px solid #cc9900; 
 }
 
-
-
+.tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 15px; 
+    font-size: 0.8rem;
+    font-weight: 500;
+}
 </style>
