@@ -7,7 +7,7 @@
                 <form @submit.prevent="handleCadastro">
                     <div class="form-row">
                         <div class="form-group full-width">
-                            <label for="nome" class="form-label">
+                            <label>
                                 <iconify-icon icon="hugeicons:book-02" width="20" height="20"></iconify-icon> Nome do Curso
                             </label>
                             <input 
@@ -22,9 +22,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="descricao" class="form-label">
-                            <iconify-icon icon="hugeicons:file-edit" width="20" height="20"></iconify-icon> Descrição
-                        </label>
+                        <div class="columns">
+                            <label for="descricao" class="form-label">
+                                <iconify-icon icon="hugeicons:file-edit" width="20" height="20"></iconify-icon> Descrição
+                            </label>
+                        
+                            <div class="button" @click="callGemini()">
+                                <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                Gerar descrição com IA
+                            </div>
+                        </div>
+                        
                         <textarea 
                             v-model="formData.descricao"
                             id="descricao"
@@ -36,9 +44,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="conteudo" class="form-label">
-                            <iconify-icon icon="hugeicons:note" width="20" height="20"></iconify-icon> Conteúdo Programático
-                        </label>
+                        
+                        <div class="columns">
+                            <label for="conteudo" class="form-label">
+                                <iconify-icon icon="hugeicons:note" width="20" height="20"></iconify-icon> Conteúdo Programático
+                            </label>
+
+                            <div class="button">
+                                <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                Gerar conteúdo programático com IA
+                            </div>
+                        </div>
                         <textarea 
                             v-model="formData.conteudo"
                             id="conteudo"
@@ -51,6 +67,7 @@
 
                     <div class="form-row">
                         <div class="form-group">
+                            
                             <label for="instrutores" class="form-label">
                                 <iconify-icon icon="hugeicons:teacher" width="20" height="20"></iconify-icon> Instrutores
                             </label>
@@ -81,9 +98,19 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="publico" class="form-label">
-                                <iconify-icon icon="hugeicons:users" width="20" height="20"></iconify-icon> Público Alvo
-                            </label>
+                            
+
+                            <div class="columns">
+                                <label for="publico" class="form-label">
+                                    <iconify-icon icon="hugeicons:users" width="20" height="20"></iconify-icon> Público Alvo
+                                </label>
+                            
+                                <div class="button">
+                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                    Gerar público alvo com IA
+                                </div>
+                            </div>
+                            
                             <input 
                                 v-model="formData.publico"
                                 type="text" 
@@ -155,9 +182,18 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="preRequisitos" class="form-label">
-                                <iconify-icon icon="hugeicons:check-list" width="20" height="20"></iconify-icon> Pré-requisitos
-                            </label>
+                            
+
+                            <div class="columns">
+                                <label for="preRequisitos" class="form-label">
+                                    <iconify-icon icon="hugeicons:check-list" width="20" height="20"></iconify-icon> Pré-requisitos
+                                </label>
+                            
+                                <div class="button">
+                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                    Gerar pré-requisitos com IA
+                                </div>
+                            </div>
                             <input 
                                 v-model="formData.preRequisitos"
                                 type="text" 
@@ -238,7 +274,7 @@ export default {
             isLoading: false
         };
     },
-    mounted() {
+    async mounted() {
         this.checkAdminAccess();
     },
     methods: {
@@ -310,6 +346,29 @@ export default {
             } finally {
                 this.isLoading = false;
             }
+        },
+
+        async callGemini(){
+            await axios.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", 
+                {
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: "Explain how IA works"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': "AIzaSyAzN0yvu7AMy_J0JpPFaDHyBRTtIMCg0mA"
+                    }
+                }
+            )
+            console.log("teste");
         }
     }
 };
@@ -478,5 +537,27 @@ textarea.form-input {
 .btn-cancel:hover {
     background: #e9ecef;
     transform: translateY(-2px);
+}
+
+.columns{
+    display: flex;
+    justify-content: space-between;
+}
+
+.button{
+    background-color: #ebedff;
+    color: #0014a8 !important;
+    border-radius: 6px;
+    padding: 5px 10px 5px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.button:hover{
+    background-color: #0014a8;
+    color: #ebedff !important;
+    cursor:pointer;
 }
 </style>
