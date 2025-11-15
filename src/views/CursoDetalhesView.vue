@@ -47,6 +47,127 @@
                             <p>{{ curso.preRequisitos }}</p> 
                         </div>
                     </div>
+
+                    <!-- Seção de Avaliações -->
+                    <div class="bloco-curso-principal avaliacoes-section">
+                        <h3 class="secao-titulo">Avaliações do Curso</h3>
+                        
+                        <div v-if="carregandoAvaliacoes" class="loading-avaliacoes">
+                            <iconify-icon icon="hugeicons:loading-03" width="32" height="32" class="rotating"></iconify-icon>
+                            <p>Carregando avaliações...</p>
+                        </div>
+
+                        <div v-else-if="avaliacoes.length === 0" class="empty-avaliacoes">
+                            <iconify-icon icon="hugeicons:message-02" width="48" height="48"></iconify-icon>
+                            <p>Este curso ainda não possui avaliações.</p>
+                        </div>
+
+                        <div v-else>
+                            <!-- Média e Resumo IA -->
+                            <div class="avaliacoes-header">
+                                <div class="media-avaliacoes">
+                                    <div class="estrelas-media">
+                                        <iconify-icon 
+                                            v-for="n in 5" 
+                                            :key="n"
+                                            icon="hugeicons:star"
+                                            :class="['estrela-display', { 'preenchida': n <= Math.round(mediaAvaliacoes) }]"
+                                            width="32" 
+                                            height="32"
+                                        ></iconify-icon>
+                                    </div>
+                                    <div class="media-texto">
+                                        <span class="media-numero">{{ mediaAvaliacoes.toFixed(1) }}</span>
+                                        <span class="media-total">de 5 ({{ totalAvaliacoes }} avaliações)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Resumo IA -->
+                                <div v-if="resumoIA" class="resumo-ia">
+                                    <div class="resumo-ia-header">
+                                        <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                        <strong>Resumo gerado por IA</strong>
+                                    </div>
+                                    <p class="resumo-ia-texto">{{ resumoIA }}</p>
+                                </div>
+                                <button 
+                                    v-else-if="!carregandoResumo && totalAvaliacoes > 0"
+                                    @click="gerarResumoIA"
+                                    class="btn-gerar-resumo"
+                                >
+                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                    Gerar resumo com IA
+                                </button>
+                                <div v-if="carregandoResumo" class="loading-resumo">
+                                    <iconify-icon icon="hugeicons:loading-03" width="20" height="20" class="rotating"></iconify-icon>
+                                    Gerando resumo...
+                                </div>
+                            </div>
+
+                            <!-- Lista de Avaliações -->
+                            <div class="avaliacoes-lista">
+                                <div 
+                                    v-for="avaliacao in avaliacoes" 
+                                    :key="avaliacao._id"
+                                    :class="['avaliacao-card', { 'oculta': avaliacao.oculta }]"
+                                >
+                                    <div v-if="!avaliacao.oculta">
+                                        <div class="avaliacao-header">
+                                            <div class="usuario-info">
+                                                <img 
+                                                    :src="avaliacao.usuarioId?.foto || defaultAvatar" 
+                                                    alt="Foto do usuário"
+                                                    class="usuario-avatar"
+                                                />
+                                                <div>
+                                                    <strong class="usuario-nome">{{ avaliacao.usuarioId?.nome || 'Usuário' }}</strong>
+                                                    <div class="avaliacao-estrelas">
+                                                        <iconify-icon 
+                                                            v-for="n in 5" 
+                                                            :key="n"
+                                                            icon="hugeicons:star"
+                                                            :class="['estrela-pequena', { 'preenchida': n <= avaliacao.nota }]"
+                                                            width="16" 
+                                                            height="16"
+                                                        ></iconify-icon>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span class="avaliacao-data">{{ formatarData(avaliacao.createdAt) }}</span>
+                                        </div>
+                                        <p class="avaliacao-mensagem">{{ avaliacao.mensagem }}</p>
+                                        
+                                        <!-- Botão Admin para ocultar -->
+                                        <button 
+                                            v-if="isAdmin"
+                                            @click="toggleOcultarAvaliacao(avaliacao)"
+                                            class="btn-ocultar"
+                                        >
+                                            <iconify-icon icon="hugeicons:eye-off" width="16" height="16"></iconify-icon>
+                                            Ocultar avaliação
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Avaliação Oculta -->
+                                    <div v-else class="avaliacao-oculta-box">
+                                        <iconify-icon icon="hugeicons:eye-off" width="24" height="24"></iconify-icon>
+                                        <p><em>Este comentário foi ocultado pelo professor ou coordenador.</em></p>
+                                        
+                                        <!-- Botão Admin para mostrar novamente -->
+                                        <button 
+                                            v-if="isAdmin"
+                                            @click="toggleOcultarAvaliacao(avaliacao)"
+                                            class="btn-mostrar"
+                                        >
+                                            <iconify-icon icon="hugeicons:view" width="16" height="16"></iconify-icon>
+                                            Mostrar novamente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="col-sidebar">
@@ -86,6 +207,7 @@
 
 <script>
 import axios from 'axios';
+import api from '@/services/api';
 
 const PLACEHOLDER_ID = '000000000000000000000000';
 
@@ -110,7 +232,17 @@ export default {
             
             // Variáveis do usuário (Obtidas do localStorage)
             userId: null, 
-            userProficiencias: [], 
+            userProficiencias: [],
+            isAdmin: false,
+            
+            // Avaliações
+            avaliacoes: [],
+            mediaAvaliacoes: 0,
+            totalAvaliacoes: 0,
+            carregandoAvaliacoes: true,
+            resumoIA: '',
+            carregandoResumo: false,
+            defaultAvatar: 'https://ui-avatars.com/api/?name=User&background=4e9e47&color=fff'
         };
     },
     computed: {
@@ -149,11 +281,13 @@ export default {
             const userData = JSON.parse(user);
             this.userId = userData._id || userData.id; 
             this.userProficiencias = userData.proficiencias || [];
+            this.isAdmin = userData.nivel === 'admin';
         }
 
         // CORREÇÃO: Usa a prop 'id' (preferencial) ou faz fallback para $route.params.id
         const cursoId = this.id || this.$route.params.id; 
         this.carregarCurso(cursoId);
+        this.carregarAvaliacoes(cursoId);
     },
     methods: {
         voltarAoCatalogo() {
@@ -227,6 +361,60 @@ export default {
             } finally {
                 this.carregandoInscricao = false;
             }
+        },
+
+        async carregarAvaliacoes(cursoId) {
+            try {
+                const { data } = await api.get(`/avaliacoes/curso/${cursoId}`);
+                this.avaliacoes = data.avaliacoes;
+                this.mediaAvaliacoes = data.media;
+                this.totalAvaliacoes = data.total;
+            } catch (error) {
+                console.error('Erro ao carregar avaliações:', error);
+            } finally {
+                this.carregandoAvaliacoes = false;
+            }
+        },
+
+        async gerarResumoIA() {
+            this.carregandoResumo = true;
+            try {
+                const { data } = await api.post('/gemini/resumo-avaliacoes', {
+                    avaliacoes: this.avaliacoes
+                });
+                this.resumoIA = data.resumo || '';
+            } catch (error) {
+                console.error('Erro ao gerar resumo:', error);
+                alert('Erro ao gerar resumo. Tente novamente.');
+            } finally {
+                this.carregandoResumo = false;
+            }
+        },
+
+        async toggleOcultarAvaliacao(avaliacao) {
+            const novoEstado = !avaliacao.oculta;
+            const confirmacao = novoEstado 
+                ? 'Tem certeza que deseja ocultar esta avaliação?' 
+                : 'Deseja tornar esta avaliação visível novamente?';
+
+            if (!confirm(confirmacao)) return;
+
+            try {
+                await api.patch(`/avaliacoes/${avaliacao._id}/ocultar`, {
+                    oculta: novoEstado
+                });
+                
+                avaliacao.oculta = novoEstado;
+                alert(novoEstado ? 'Avaliação ocultada.' : 'Avaliação visível novamente.');
+            } catch (error) {
+                console.error('Erro ao alterar visibilidade:', error);
+                alert('Erro ao processar a solicitação.');
+            }
+        },
+
+        formatarData(data) {
+            if (!data) return '';
+            return new Date(data).toLocaleDateString('pt-BR');
         }
     }
 };
@@ -262,5 +450,242 @@ export default {
     .curso-content { flex-direction: column; }
     .col-sidebar { min-width: 100%; order: -1; }
     .card-acao { position: static; }
+}
+
+/* Avaliações Section */
+.avaliacoes-section {
+    margin-top: 30px;
+}
+
+.loading-avaliacoes,
+.empty-avaliacoes {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.empty-avaliacoes iconify-icon {
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.avaliacoes-header {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.media-avaliacoes {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.estrelas-media {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.estrela-display {
+    color: #ddd;
+}
+
+.estrela-display.preenchida {
+    color: #ffc107;
+}
+
+.media-texto {
+    display: flex;
+    flex-direction: column;
+}
+
+.media-numero {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #133328;
+}
+
+.media-total {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.resumo-ia {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #0014a8;
+}
+
+.resumo-ia-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: #0014a8;
+}
+
+.resumo-ia-texto {
+    color: #333;
+    line-height: 1.6;
+}
+
+.btn-gerar-resumo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #0014a8 0%, #000a5c 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-gerar-resumo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 20, 168, 0.4);
+}
+
+.loading-resumo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+}
+
+.avaliacoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.avaliacao-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avaliacao-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.avaliacao-card.oculta {
+    background: #f5f5f5;
+}
+
+.avaliacao-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.usuario-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.usuario-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.usuario-nome {
+    display: block;
+    font-size: 1rem;
+    color: #133328;
+    margin-bottom: 0.25rem;
+}
+
+.avaliacao-estrelas {
+    display: flex;
+    gap: 0.15rem;
+}
+
+.estrela-pequena {
+    color: #ddd;
+}
+
+.estrela-pequena.preenchida {
+    color: #ffc107;
+}
+
+.avaliacao-data {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.avaliacao-mensagem {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.btn-ocultar,
+.btn-mostrar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-ocultar {
+    background: #fee;
+    color: #c33;
+}
+
+.btn-ocultar:hover {
+    background: #fdd;
+}
+
+.btn-mostrar {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.btn-mostrar:hover {
+    background: #c8e6c9;
+}
+
+.avaliacao-oculta-box {
+    background: #d9d9d9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    color: #666;
+}
+
+.avaliacao-oculta-box iconify-icon {
+    margin-bottom: 0.5rem;
+}
+
+.avaliacao-oculta-box p {
+    font-style: italic;
+    margin-bottom: 1rem;
 }
 </style>

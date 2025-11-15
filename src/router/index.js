@@ -4,6 +4,7 @@ import Cadastro from '../views/UserCadastro.vue'
 import Perfil from '../views/UserPerfil.vue'
 import CatalogoCursosView from '../views/CatalogoCursosView.vue'
 import CursoDetalhesView from '../views/CursoDetalhesView.vue';
+import MeusCursosView from '../views/MeusCursosView.vue';
 import AdminCadastrarUsuario from '../views/AdminCadastrarUsuario.vue'
 import AdminCadastrarCurso from '../views/AdminCadastrarCurso.vue'
 import AdminListarUsuarios from '../views/AdminListarUsuarios.vue'
@@ -43,6 +44,11 @@ const routes = [
     name: 'detalhesCurso',
     component: CursoDetalhesView,
     props: true 
+  },
+  {
+    path: '/meus-cursos',
+    name: 'meusCursos',
+    component: MeusCursosView
   },
   // Rotas Admin
   {

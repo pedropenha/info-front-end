@@ -27,10 +27,16 @@
                                 <iconify-icon icon="hugeicons:file-edit" width="20" height="20"></iconify-icon> Descrição
                             </label>
                         
-                            <div class="button" @click="callGemini()">
+                            <button 
+                                type="button"
+                                class="button"
+                                @click="gerarDescricaoIA"
+                                :disabled="aiState.descricao.loading"
+                            >
                                 <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
-                                Gerar descrição com IA
-                            </div>
+                                <span v-if="!aiState.descricao.loading">Gerar descrição com IA</span>
+                                <span v-else>Gerando...</span>
+                            </button>
                         </div>
                         
                         <textarea 
@@ -50,10 +56,16 @@
                                 <iconify-icon icon="hugeicons:note" width="20" height="20"></iconify-icon> Conteúdo Programático
                             </label>
 
-                            <div class="button">
+                            <button 
+                                type="button"
+                                class="button"
+                                @click="gerarConteudoIA"
+                                :disabled="aiState.conteudo.loading"
+                            >
                                 <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
-                                Gerar conteúdo programático com IA
-                            </div>
+                                <span v-if="!aiState.conteudo.loading">Gerar conteúdo programático com IA</span>
+                                <span v-else>Gerando...</span>
+                            </button>
                         </div>
                         <textarea 
                             v-model="formData.conteudo"
@@ -105,10 +117,16 @@
                                     <iconify-icon icon="hugeicons:users" width="20" height="20"></iconify-icon> Público Alvo
                                 </label>
                             
-                                <div class="button">
-                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
-                                    Gerar público alvo com IA
-                                </div>
+                                <button 
+                                type="button"
+                                class="button"
+                                @click="gerarPublicoAlvoIA"
+                                :disabled="aiState.publico.loading"
+                            >
+                                <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                <span v-if="!aiState.publico.loading">Gerar público alvo com IA</span>
+                                <span v-else>Gerando...</span>
+                            </button>
                             </div>
                             
                             <input 
@@ -189,10 +207,16 @@
                                     <iconify-icon icon="hugeicons:check-list" width="20" height="20"></iconify-icon> Pré-requisitos
                                 </label>
                             
-                                <div class="button">
-                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
-                                    Gerar pré-requisitos com IA
-                                </div>
+                                <button 
+                                type="button"
+                                class="button"
+                                @click="gerarPreRequisitosIA"
+                                :disabled="aiState.preRequisitos.loading"
+                            >
+                                <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                <span v-if="!aiState.preRequisitos.loading">Gerar pré-requisitos com IA</span>
+                                <span v-else>Gerando...</span>
+                            </button>
                             </div>
                             <input 
                                 v-model="formData.preRequisitos"
@@ -205,10 +229,51 @@
                         </div>
                     </div>
 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dataInicio" class="form-label">
+                                <iconify-icon icon="hugeicons:calendar-03" width="20" height="20"></iconify-icon> Data de Início
+                            </label>
+                            <input 
+                                v-model="formData.dataInicio"
+                                type="date" 
+                                id="dataInicio"
+                                class="form-input"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dataTermino" class="form-label">
+                                <iconify-icon icon="hugeicons:calendar-check-02" width="20" height="20"></iconify-icon> Data de Término
+                            </label>
+                            <input 
+                                v-model="formData.dataTermino"
+                                type="date" 
+                                id="dataTermino"
+                                class="form-input"
+                                required
+                            />
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label for="proeficiencias" class="form-label">
-                            <iconify-icon icon="hugeicons:stars" width="20" height="20"></iconify-icon> Proficiências (opcional)
-                        </label>
+                        <div class="columns">
+                            <label for="proeficiencias" class="form-label">
+                                <iconify-icon icon="hugeicons:stars" width="20" height="20"></iconify-icon> Proficiências (opcional)
+                            </label>
+
+                            <button 
+                                type="button"
+                                class="button"
+                                @click="gerarProficienciasIA"
+                                :disabled="aiState.proficiencias.loading"
+                            >
+                                <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
+                                <span v-if="!aiState.proficiencias.loading">Gerar proficiências com IA</span>
+                                <span v-else>Gerando...</span>
+                            </button>
+                        </div>
                         <input 
                             v-model="formData.proeficiencias"
                             type="text" 
@@ -249,7 +314,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '@/services/api';
 
 export default {
     name: "AdminCadastrarCurso",
@@ -267,11 +332,20 @@ export default {
                 maximoVagas: '',
                 horario: '',
                 faixaEtaria: '',
-                proeficiencias: ''
+                proeficiencias: '',
+                dataInicio: '',
+                dataTermino: ''
             },
             errorMessage: '',
             successMessage: '',
-            isLoading: false
+            isLoading: false,
+            aiState: {
+                descricao: { loading: false },
+                conteudo: { loading: false },
+                proficiencias: { loading: false },
+                publico: { loading: false },
+                preRequisitos: { loading: false }
+            }
         };
     },
     async mounted() {
@@ -308,10 +382,19 @@ export default {
                 return;
             }
 
+            // Validação de datas
+            const dataInicio = new Date(this.formData.dataInicio);
+            const dataTermino = new Date(this.formData.dataTermino);
+
+            if (dataInicio >= dataTermino) {
+                this.errorMessage = 'A data de término deve ser posterior à data de início';
+                return;
+            }
+
             this.isLoading = true;
 
             try {
-                await axios.post('http://localhost:3000/api/cursos/', this.formData);
+                await api.post('/cursos', this.formData);
                 
                 this.successMessage = 'Curso cadastrado com sucesso!';
                 
@@ -328,7 +411,9 @@ export default {
                     maximoVagas: '',
                     horario: '',
                     faixaEtaria: '',
-                    proeficiencias: ''
+                    proeficiencias: '',
+                    dataInicio: '',
+                    dataTermino: ''
                 };
 
                 setTimeout(() => {
@@ -348,27 +433,164 @@ export default {
             }
         },
 
-        async callGemini(){
-            await axios.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", 
-                {
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: "Explain how IA works"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': "AIzaSyAzN0yvu7AMy_J0JpPFaDHyBRTtIMCg0mA"
-                    }
-                }
-            )
-            console.log("teste");
+        buildContexto() {
+            const contextoParts = [];
+            const { descricao, conteudo, publico, preRequisitos, instrutores, local } = this.formData;
+
+            if (descricao) contextoParts.push(`Descrição: ${descricao}`);
+            if (conteudo) contextoParts.push(`Conteúdo: ${conteudo}`);
+            if (publico) contextoParts.push(`Público: ${publico}`);
+            if (preRequisitos) contextoParts.push(`Pré-requisitos: ${preRequisitos}`);
+            if (instrutores) contextoParts.push(`Instrutores: ${instrutores}`);
+            if (local) contextoParts.push(`Local: ${local}`);
+
+            return contextoParts.join(' | ');
+        },
+
+        setAiLoading(type, value) {
+            if (this.aiState[type]) {
+                this.aiState[type].loading = value;
+            }
+        },
+
+        async requestGemini(endpoint, payload) {
+            const { data } = await api.post(endpoint, payload);
+            return data;
+        },
+
+        handleGeminiError(error, fallbackMessage) {
+            console.error('Erro ao gerar conteúdo com IA:', error);
+            if (error?.response?.data?.message) {
+                this.errorMessage = error.response.data.message;
+            } else {
+                this.errorMessage = fallbackMessage;
+            }
+        },
+
+        async gerarDescricaoIA() {
+            if (!this.formData.nome) {
+                this.errorMessage = 'Informe o nome do curso antes de gerar a descrição.';
+                return;
+            }
+
+            this.errorMessage = '';
+            this.setAiLoading('descricao', true);
+
+            try {
+                const response = await this.requestGemini('/gemini/descricao', {
+                    titulo: this.formData.nome,
+                    contexto: this.buildContexto()
+                });
+
+                this.formData.descricao = response.descricao || '';
+            } catch (error) {
+                this.handleGeminiError(error, 'Não foi possível gerar a descrição.');
+            } finally {
+                this.setAiLoading('descricao', false);
+            }
+        },
+
+        async gerarConteudoIA() {
+            if (!this.formData.nome) {
+                this.errorMessage = 'Informe o nome do curso antes de gerar o conteúdo programático.';
+                return;
+            }
+
+            const contexto = this.buildContexto();
+
+            if (!contexto) {
+                this.errorMessage = 'Preencha algumas informações do curso antes de gerar o conteúdo programático.';
+                return;
+            }
+
+            this.errorMessage = '';
+            this.setAiLoading('conteudo', true);
+
+            try {
+                const response = await this.requestGemini('/gemini/conteudo-programatico', {
+                    titulo: this.formData.nome,
+                    contexto
+                });
+
+                this.formData.conteudo = response.conteudo || '';
+            } catch (error) {
+                this.handleGeminiError(error, 'Não foi possível gerar o conteúdo programático.');
+            } finally {
+                this.setAiLoading('conteudo', false);
+            }
+        },
+
+        async gerarProficienciasIA() {
+            const contexto = this.buildContexto();
+
+            if (!contexto) {
+                this.errorMessage = 'Preencha algumas informações do curso antes de gerar as proficiências.';
+                return;
+            }
+
+            this.errorMessage = '';
+            this.setAiLoading('proficiencias', true);
+
+            try {
+                const response = await this.requestGemini('/gemini/proficiencias', {
+                    contexto
+                });
+
+                // Response vem como string com vírgulas
+                this.formData.proeficiencias = response.proficiencias || '';
+            } catch (error) {
+                this.handleGeminiError(error, 'Não foi possível gerar as proficiências.');
+            } finally {
+                this.setAiLoading('proficiencias', false);
+            }
+        },
+
+        async gerarPublicoAlvoIA() {
+            const contexto = this.buildContexto();
+
+            if (!contexto) {
+                this.errorMessage = 'Preencha algumas informações do curso antes de gerar o público-alvo.';
+                return;
+            }
+
+            this.errorMessage = '';
+            this.setAiLoading('publico', true);
+
+            try {
+                const response = await this.requestGemini('/gemini/publico-alvo', {
+                    contexto
+                });
+
+                this.formData.publico = response.publico || '';
+            } catch (error) {
+                this.handleGeminiError(error, 'Não foi possível gerar o público-alvo.');
+            } finally {
+                this.setAiLoading('publico', false);
+            }
+        },
+
+        async gerarPreRequisitosIA() {
+            const contexto = this.buildContexto();
+
+            if (!contexto) {
+                this.errorMessage = 'Preencha algumas informações do curso antes de gerar os pré-requisitos.';
+                return;
+            }
+
+            this.errorMessage = '';
+            this.setAiLoading('preRequisitos', true);
+
+            try {
+                const response = await this.requestGemini('/gemini/pre-requisitos', {
+                    contexto
+                });
+
+                this.formData.preRequisitos = response.preRequisitos || '';
+            } catch (error) {
+                this.handleGeminiError(error, 'Não foi possível gerar os pré-requisitos.');
+            } finally {
+                this.setAiLoading('preRequisitos', false);
+            }
         }
     }
 };
@@ -553,11 +775,17 @@ textarea.form-input {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 0.5rem;
+    border: none;
 }
 
 .button:hover{
     background-color: #0014a8;
     color: #ebedff !important;
     cursor:pointer;
+}
+
+.button:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 </style>
