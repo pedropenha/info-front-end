@@ -118,7 +118,6 @@ export default {
         };
     },
     computed: {
-        // 🆕 Simulando a obtenção do usuário logado e seu ID
         usuarioLogado() {
             const userString = localStorage.getItem('user');
             if (userString) {
@@ -138,12 +137,10 @@ export default {
         this.buscarCursosDebounced = debounce(this.buscarCursos, 300);
     },
     watch: {
-        // Monitora mudanças no termo de busca unificada
         buscaTermo() { 
             this.paginaAtual = 1; 
             this.buscarCursosDebounced(); 
         },
-        // Monitora filtros de seleção imediata
         filtroLocal() { 
             this.paginaAtual = 1; 
             this.buscarCursos(); 
@@ -156,7 +153,6 @@ export default {
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
-        // NOVO WATCH para o filtro de tags (Array de Strings)
         proficienciasSelecionadas: { 
             deep: true,
             handler() {
@@ -183,15 +179,12 @@ export default {
             
             const params = new URLSearchParams();
 
-            // ADICIONA A BUSCA UNIFICADA
             if (this.buscaTermo) { params.append('busca', this.buscaTermo); }
 
-            // ADICIONA AS PROFICIÊNCIAS SELECIONADAS (Array de Strings)
             if (this.proficienciasSelecionadas.length > 0) {
                 params.append('proficiencias', this.proficienciasSelecionadas.join(',')); // Envia as tags como uma string separada por vírgulas
             }
 
-            // Adiciona filtros dedicados
             if (this.filtroLocal) { params.append('local', this.filtroLocal); }
             if (this.filtroFaixaEtaria) { params.append('faixaEtaria', this.filtroFaixaEtaria); }
             if (this.filtroHorario) { params.append('horario', this.filtroHorario); }
@@ -228,7 +221,7 @@ export default {
             this.filtroLocal = '';
             this.filtroFaixaEtaria = '';
             this.filtroHorario = '';
-            this.proficienciasSelecionadas = []; // LIMPA AS TAGS
+            this.proficienciasSelecionadas = []; 
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
@@ -241,7 +234,6 @@ export default {
         },
 
         visualizarDetalhes(cursoId) {
-            console.log('ID do Curso (Catálogo):', cursoId); // Útil para debug
             if (cursoId) {
                 this.$router.push({ 
                     name: 'detalhesCurso', 
@@ -254,7 +246,7 @@ export default {
         async buscarRecomendacoes() {
             this.carregandoRecomendacoes = true;
             this.recomendacoesIA = []; 
-            this.erroRecomendacao = null; // Limpa erros anteriores
+            this.erroRecomendacao = null; 
 
             try {
                 const requestBody = {
@@ -264,13 +256,13 @@ export default {
                 const response = await axios.post(this.API_RECOMENDACOES_URL, requestBody);
                 
                 this.recomendacoesIA = response.data.recomendacoes || [];
-                this.erroRecomendacao = response.data.message || null; // Captura a mensagem de 200 (ex: "Atualize seu perfil")
+                this.erroRecomendacao = response.data.message || null; 
                 
             } catch (error) {
                 console.error("Erro ao buscar recomendações da IA:", error);
                 
                 if (error.response && error.response.status === 401) {
-                    this.erroRecomendacao = error.response.data.message; // "Logue para ter uma recomendação personalizada."
+                    this.erroRecomendacao = error.response.data.message;
                 } 
                 else {
                     this.erroRecomendacao = "Ocorreu um erro interno ao gerar as recomendações. Tente novamente mais tarde.";
@@ -323,7 +315,6 @@ export default {
     margin-bottom: 2rem;
 }
 
-/* --- GRID RESPONSIVO PARA OS CARDS (NOVO CONTAINER DE TRANSITION) --- */
 .cursos-grid-transition {
     display: grid;
     gap: 25px; 
@@ -342,7 +333,6 @@ export default {
     }
 }
 
-/* --- Estilos de Transição (Animação Fluida de Entrada/Saída) --- */
 
 .list-enter-from, .list-leave-to { 
     opacity: 0; 

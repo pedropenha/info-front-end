@@ -151,7 +151,6 @@ export default {
             this.userProficiencias = userData.proficiencias || [];
         }
 
-        // CORREÇÃO: Usa a prop 'id' (preferencial) ou faz fallback para $route.params.id
         const cursoId = this.id || this.$route.params.id; 
         this.carregarCurso(cursoId);
     },
@@ -164,7 +163,6 @@ export default {
             this.carregando = true;
             this.erro = null;
 
-            // Validando o ID
             if (!id || id.length !== 24) {
                 this.erro = "ID do curso inválido. Retorne ao catálogo.";
                 this.carregando = false;
@@ -202,17 +200,15 @@ export default {
             }
 
             try {
-                // 🛑 CORREÇÃO CHAVE: Usar _id se id for undefined/null
                 const idParaInscricao = this.curso.id || this.curso._id;
                 
-                // Validação de segurança extra no front-end
                 if (!idParaInscricao) {
                     throw new Error("ID do curso não encontrado no objeto carregado.");
                 }
 
                 const response = await axios.post(`${this.API_BASE_URL}/inscricoes`, {
                     usuarioId: this.userId,
-                    cursoId: idParaInscricao, // Usa a variável que garante o ID (_id ou id)
+                    cursoId: idParaInscricao, 
                     usuarioProficiencias: this.userProficiencias
                 });
 

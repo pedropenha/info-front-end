@@ -93,7 +93,6 @@ export default {
     },
     mounted() {
         this.checkUserStatus();
-        // Escutar mudanças no localStorage
         window.addEventListener('storage', this.checkUserStatus);
     },
     beforeUnmount() {
@@ -150,7 +149,6 @@ export default {
 </script>
 
 <style scoped>
-/* --- Navbar Principal (Clean White) --- */
 .app-navbar {
     background-color: #133328; /* Fundo branco e limpo */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave de profundidade */

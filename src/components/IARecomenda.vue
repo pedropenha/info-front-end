@@ -73,7 +73,6 @@
 export default {
   name: "IARecomenda",
   props: {
-    // Recebe a lista de recomendações do CatalogoCursos.vue
     recomendacoes: {
       type: Array,
       default: () => [],
@@ -82,7 +81,6 @@ export default {
       type: String,
       default: null,
     },
-    // Recebe o estado de carregamento do CatalogoCursos.vue
     loading: {
       type: Boolean,
       default: false,
@@ -97,25 +95,21 @@ export default {
     toggleModal() {
       this.showModal = !this.showModal;
 
-      // Quando o modal abre E não há recomendações E não há erros prévios,
-      // dispara a chamada para o método em CatalogoCursos.vue
+
       if (this.showModal && this.recomendacoes.length === 0 && !this.erroRecomendacao) {
         this.$emit('pedir-recomendacoes');
       }
     },
     inscrever(cursoId) {
-      // Implementação da navegação para a página de detalhes do curso.
       if (cursoId) {
-        // Assumindo que você usa o Vue Router:
         this.$router.push({
-          name: 'detalhesCurso', // Use o nome da sua rota de detalhes
+          name: 'detalhesCurso', 
           params: { id: cursoId }
         });
-        this.toggleModal(); // Fecha o modal após a navegação
+        this.toggleModal(); 
       }
     }
   },
-  // Adiciona o listener para fechar o modal com a tecla ESC
   mounted() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.showModal) {
@@ -248,7 +242,6 @@ export default {
 
 .modal-header i {
   font-size: 2rem;
-  /* Cor principal (Verde escuro do seu tema) */
   color: var(--color-primary, #133328); 
   margin-right: 15px;
 }
@@ -265,9 +258,7 @@ export default {
   font-size: 1rem;
 }
 
-/* ---------------------------------- */
-/* --- 4. CARD DE CURSO (ATUALIZADO) --- */
-/* ---------------------------------- */
+
 .recomendacoes-lista {
   list-style: none;
   padding: 0;
@@ -372,9 +363,7 @@ export default {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* ---------------------------------- */
-/* --- 5. ESTADOS E MENSAGENS ATUALIZADOS --- */
-/* ---------------------------------- */
+
 .status-message {
   padding: 20px;
   border-radius: 8px;
@@ -406,9 +395,7 @@ export default {
   border: 1px solid #ffcc80;
 }
 
-/* ---------------------------------- */
-/* --- 6. Transição (Animação do Modal) --- */
-/* ---------------------------------- */
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.3s ease;
