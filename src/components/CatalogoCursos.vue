@@ -1,8 +1,17 @@
 <template>
     <div class="catalogo-cursos section">
+
         <div class="main-container">
-            <h1 class="title-h1">Explore Nossos Cursos e Eventos</h1>
+            <h1 class="title-h1">Explore Nossos Cursos e Eventos</h1>           
             
+            <IARecomenda 
+            :class="{'hidden-fab': !usuarioLogado}"
+            :recomendacoes="recomendacoesIA"
+            :loading="carregandoRecomendacoes"
+            :erro-recomendacao="erroRecomendacao"
+            @pedir-recomendacoes="buscarRecomendacoes"
+            />
+
             <FiltroCursos
                 v-model:buscaTermo="buscaTermo"
                 v-model:filtroLocal="filtroLocal"
@@ -71,6 +80,7 @@ import debounce from 'lodash/debounce';
 import FiltroCursos from './FiltroCursos.vue'; 
 import CursoCard from './CursoCard.vue'; 
 import FiltroProficienciaTags from './FiltroProficienciaTags.vue';
+import IARecomenda from './IARecomenda.vue';
 
 export default {
     name: "CatalogoCursosView", 
@@ -78,12 +88,18 @@ export default {
         FiltroCursos,
         CursoCard,
         FiltroProficienciaTags,
+        IARecomenda,
     },
     data() {
         return {
             cursos: [], 
             sugestoesTags: [],
             buscaTermo: '', 
+
+            recomendacoesIA: [],
+            carregandoRecomendacoes: false,
+            erroRecomendacao: null,
+
             filtroLocal: '', 
             filtroFaixaEtaria: '', 
             filtroHorario: '', 
@@ -98,10 +114,26 @@ export default {
             carregando: false,
             erro: null,
             API_BASE_URL: 'http://localhost:3000/api/cursos', 
+            API_RECOMENDACOES_URL: 'http://localhost:3000/api/recomendacoes',
         };
     },
+    computed: {
+        // 🆕 Simulando a obtenção do usuário logado e seu ID
+        usuarioLogado() {
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                try {
+                    return JSON.parse(userString);
+                } catch (e) {
+                    console.error("Erro ao parsear 'user' no computed:", e);
+                    return null;
+                }
+            }
+            return null;
+        }
+    },
     created() {
-        this.carregarSugestoes(); // 🛑 NOVO MÉTODO CHAMADO AQUI
+        this.carregarSugestoes();
         this.buscarCursos();
         this.buscarCursosDebounced = debounce(this.buscarCursos, 300);
     },
@@ -211,7 +243,6 @@ export default {
         visualizarDetalhes(cursoId) {
             console.log('ID do Curso (Catálogo):', cursoId); // Útil para debug
             if (cursoId) {
-                // 🛑 CORREÇÃO/OTIMIZAÇÃO AQUI: Usando o nome da rota 'detalhesCurso'
                 this.$router.push({ 
                     name: 'detalhesCurso', 
                     params: { id: cursoId } 
@@ -219,7 +250,37 @@ export default {
             } else {
                 console.error('ID do curso não está definido ou é inválido para navegação.');
             }
-        }
+        },
+        async buscarRecomendacoes() {
+            this.carregandoRecomendacoes = true;
+            this.recomendacoesIA = []; 
+            this.erroRecomendacao = null; // Limpa erros anteriores
+
+            try {
+                const requestBody = {
+                    userId: this.usuarioLogado ? this.usuarioLogado._id : null 
+                };
+
+                const response = await axios.post(this.API_RECOMENDACOES_URL, requestBody);
+                
+                this.recomendacoesIA = response.data.recomendacoes || [];
+                this.erroRecomendacao = response.data.message || null; // Captura a mensagem de 200 (ex: "Atualize seu perfil")
+                
+            } catch (error) {
+                console.error("Erro ao buscar recomendações da IA:", error);
+                
+                if (error.response && error.response.status === 401) {
+                    this.erroRecomendacao = error.response.data.message; // "Logue para ter uma recomendação personalizada."
+                } 
+                else {
+                    this.erroRecomendacao = "Ocorreu um erro interno ao gerar as recomendações. Tente novamente mais tarde.";
+                }
+                this.recomendacoesIA = []; 
+
+            } finally {
+                this.carregandoRecomendacoes = false;
+            }
+        },
     
     },
 };
@@ -237,6 +298,10 @@ export default {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.hidden-fab {
+    display: none !important;
 }
 
 .paginacao-info {

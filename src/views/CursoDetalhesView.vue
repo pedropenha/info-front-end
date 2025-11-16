@@ -23,7 +23,7 @@
                             <p class="detalhe-item">👨‍🏫 Instrutor: <span class="detalhe-valor">{{ curso.instrutores }}</span></p>
                             <p class="detalhe-item">👥 Público Alvo: <span class="detalhe-valor">{{ curso.publico }}</span></p>
                             <p class="detalhe-item">🔞 Faixa Etária: <span class="detalhe-valor">{{ curso.faixaEtaria }}</span></p>
-                           <p class="detalhe-item">Proficiências Necessárias: 
+                           <p class="detalhe-item">Proficiências Adquiridas: 
                             <span v-if="curso.proficiencias && curso.proficiencias.length > 0">
                                 <span 
                                     v-for="prof in curso.proficiencias" 
