@@ -1,8 +1,17 @@
 <template>
     <div class="catalogo-cursos section">
+
         <div class="main-container">
-            <h1 class="title-h1">Explore Nossos Cursos e Eventos</h1>
+            <h1 class="title-h1">Explore Nossos Cursos e Eventos</h1>           
             
+            <IARecomenda 
+            :class="{'hidden-fab': !usuarioLogado}"
+            :recomendacoes="recomendacoesIA"
+            :loading="carregandoRecomendacoes"
+            :erro-recomendacao="erroRecomendacao"
+            @pedir-recomendacoes="buscarRecomendacoes"
+            />
+
             <FiltroCursos
                 v-model:buscaTermo="buscaTermo"
                 v-model:filtroLocal="filtroLocal"
@@ -71,6 +80,7 @@ import debounce from 'lodash/debounce';
 import FiltroCursos from './FiltroCursos.vue'; 
 import CursoCard from './CursoCard.vue'; 
 import FiltroProficienciaTags from './FiltroProficienciaTags.vue';
+import IARecomenda from './IARecomenda.vue';
 
 export default {
     name: "CatalogoCursosView", 
@@ -78,12 +88,18 @@ export default {
         FiltroCursos,
         CursoCard,
         FiltroProficienciaTags,
+        IARecomenda,
     },
     data() {
         return {
             cursos: [], 
             sugestoesTags: [],
             buscaTermo: '', 
+
+            recomendacoesIA: [],
+            carregandoRecomendacoes: false,
+            erroRecomendacao: null,
+
             filtroLocal: '', 
             filtroFaixaEtaria: '', 
             filtroHorario: '', 
@@ -98,20 +114,33 @@ export default {
             carregando: false,
             erro: null,
             API_BASE_URL: 'http://localhost:3000/api/cursos', 
+            API_RECOMENDACOES_URL: 'http://localhost:3000/api/recomendacoes',
         };
     },
+    computed: {
+        usuarioLogado() {
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                try {
+                    return JSON.parse(userString);
+                } catch (e) {
+                    console.error("Erro ao parsear 'user' no computed:", e);
+                    return null;
+                }
+            }
+            return null;
+        }
+    },
     created() {
-        this.carregarSugestoes(); // 🛑 NOVO MÉTODO CHAMADO AQUI
+        this.carregarSugestoes();
         this.buscarCursos();
         this.buscarCursosDebounced = debounce(this.buscarCursos, 300);
     },
     watch: {
-        // Monitora mudanças no termo de busca unificada
         buscaTermo() { 
             this.paginaAtual = 1; 
             this.buscarCursosDebounced(); 
         },
-        // Monitora filtros de seleção imediata
         filtroLocal() { 
             this.paginaAtual = 1; 
             this.buscarCursos(); 
@@ -124,7 +153,6 @@ export default {
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
-        // NOVO WATCH para o filtro de tags (Array de Strings)
         proficienciasSelecionadas: { 
             deep: true,
             handler() {
@@ -151,15 +179,12 @@ export default {
             
             const params = new URLSearchParams();
 
-            // ADICIONA A BUSCA UNIFICADA
             if (this.buscaTermo) { params.append('busca', this.buscaTermo); }
 
-            // ADICIONA AS PROFICIÊNCIAS SELECIONADAS (Array de Strings)
             if (this.proficienciasSelecionadas.length > 0) {
                 params.append('proficiencias', this.proficienciasSelecionadas.join(',')); // Envia as tags como uma string separada por vírgulas
             }
 
-            // Adiciona filtros dedicados
             if (this.filtroLocal) { params.append('local', this.filtroLocal); }
             if (this.filtroFaixaEtaria) { params.append('faixaEtaria', this.filtroFaixaEtaria); }
             if (this.filtroHorario) { params.append('horario', this.filtroHorario); }
@@ -196,7 +221,7 @@ export default {
             this.filtroLocal = '';
             this.filtroFaixaEtaria = '';
             this.filtroHorario = '';
-            this.proficienciasSelecionadas = []; // LIMPA AS TAGS
+            this.proficienciasSelecionadas = []; 
             this.paginaAtual = 1; 
             this.buscarCursos(); 
         },
@@ -209,9 +234,7 @@ export default {
         },
 
         visualizarDetalhes(cursoId) {
-            console.log('ID do Curso (Catálogo):', cursoId); // Útil para debug
             if (cursoId) {
-                // 🛑 CORREÇÃO/OTIMIZAÇÃO AQUI: Usando o nome da rota 'detalhesCurso'
                 this.$router.push({ 
                     name: 'detalhesCurso', 
                     params: { id: cursoId } 
@@ -219,7 +242,37 @@ export default {
             } else {
                 console.error('ID do curso não está definido ou é inválido para navegação.');
             }
-        }
+        },
+        async buscarRecomendacoes() {
+            this.carregandoRecomendacoes = true;
+            this.recomendacoesIA = []; 
+            this.erroRecomendacao = null; 
+
+            try {
+                const requestBody = {
+                    userId: this.usuarioLogado ? this.usuarioLogado._id : null 
+                };
+
+                const response = await axios.post(this.API_RECOMENDACOES_URL, requestBody);
+                
+                this.recomendacoesIA = response.data.recomendacoes || [];
+                this.erroRecomendacao = response.data.message || null; 
+                
+            } catch (error) {
+                console.error("Erro ao buscar recomendações da IA:", error);
+                
+                if (error.response && error.response.status === 401) {
+                    this.erroRecomendacao = error.response.data.message;
+                } 
+                else {
+                    this.erroRecomendacao = "Ocorreu um erro interno ao gerar as recomendações. Tente novamente mais tarde.";
+                }
+                this.recomendacoesIA = []; 
+
+            } finally {
+                this.carregandoRecomendacoes = false;
+            }
+        },
     
     },
 };
@@ -237,6 +290,10 @@ export default {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.hidden-fab {
+    display: none !important;
 }
 
 .paginacao-info {
@@ -258,7 +315,6 @@ export default {
     margin-bottom: 2rem;
 }
 
-/* --- GRID RESPONSIVO PARA OS CARDS (NOVO CONTAINER DE TRANSITION) --- */
 .cursos-grid-transition {
     display: grid;
     gap: 25px; 
@@ -277,7 +333,6 @@ export default {
     }
 }
 
-/* --- Estilos de Transição (Animação Fluida de Entrada/Saída) --- */
 
 .list-enter-from, .list-leave-to { 
     opacity: 0; 

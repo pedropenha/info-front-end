@@ -23,7 +23,7 @@
                             <p class="detalhe-item">👨‍🏫 Instrutor: <span class="detalhe-valor">{{ curso.instrutores }}</span></p>
                             <p class="detalhe-item">👥 Público Alvo: <span class="detalhe-valor">{{ curso.publico }}</span></p>
                             <p class="detalhe-item">🔞 Faixa Etária: <span class="detalhe-valor">{{ curso.faixaEtaria }}</span></p>
-                           <p class="detalhe-item">Proficiências Necessárias: 
+                           <p class="detalhe-item">Proficiências Adquiridas: 
                             <span v-if="curso.proficiencias && curso.proficiencias.length > 0">
                                 <span 
                                     v-for="prof in curso.proficiencias" 
@@ -284,7 +284,6 @@ export default {
             this.isAdmin = userData.nivel === 'admin';
         }
 
-        // CORREÇÃO: Usa a prop 'id' (preferencial) ou faz fallback para $route.params.id
         const cursoId = this.id || this.$route.params.id; 
         this.carregarCurso(cursoId);
         this.carregarAvaliacoes(cursoId);
@@ -298,7 +297,6 @@ export default {
             this.carregando = true;
             this.erro = null;
 
-            // Validando o ID
             if (!id || id.length !== 24) {
                 this.erro = "ID do curso inválido. Retorne ao catálogo.";
                 this.carregando = false;
@@ -336,17 +334,15 @@ export default {
             }
 
             try {
-                // 🛑 CORREÇÃO CHAVE: Usar _id se id for undefined/null
                 const idParaInscricao = this.curso.id || this.curso._id;
                 
-                // Validação de segurança extra no front-end
                 if (!idParaInscricao) {
                     throw new Error("ID do curso não encontrado no objeto carregado.");
                 }
 
                 const response = await axios.post(`${this.API_BASE_URL}/inscricoes`, {
                     usuarioId: this.userId,
-                    cursoId: idParaInscricao, // Usa a variável que garante o ID (_id ou id)
+                    cursoId: idParaInscricao, 
                     usuarioProficiencias: this.userProficiencias
                 });
 

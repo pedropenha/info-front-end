@@ -38,8 +38,6 @@ export default {
 </script>
 
 <style scoped>
-/* --- Estilos do CARD (Movemos a maior parte dos estilos do CatalogoCursos.vue para cá) --- */
-
 .curso-card {
     background-color: white;
     border-radius: 10px;
