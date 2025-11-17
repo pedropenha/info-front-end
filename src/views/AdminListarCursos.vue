@@ -9,6 +9,38 @@
                 </router-link>
             </div>
 
+            <!-- Filtros -->
+            <div class="filtros-container">
+                <button 
+                    @click="filtroAtivo = 'todos'"
+                    :class="['filtro-btn', { 'ativo': filtroAtivo === 'todos' }]"
+                >
+                    <iconify-icon icon="hugeicons:book-02" width="20" height="20"></iconify-icon>
+                    Todos ({{ cursosCount.todos }})
+                </button>
+                <button 
+                    @click="filtroAtivo = 'em_andamento'"
+                    :class="['filtro-btn', { 'ativo': filtroAtivo === 'em_andamento' }]"
+                >
+                    <iconify-icon icon="hugeicons:loading-03" width="20" height="20"></iconify-icon>
+                    Em Andamento ({{ cursosCount.em_andamento }})
+                </button>
+                <button 
+                    @click="filtroAtivo = 'vai_iniciar'"
+                    :class="['filtro-btn', { 'ativo': filtroAtivo === 'vai_iniciar' }]"
+                >
+                    <iconify-icon icon="hugeicons:clock-01" width="20" height="20"></iconify-icon>
+                    Vai Iniciar ({{ cursosCount.vai_iniciar }})
+                </button>
+                <button 
+                    @click="filtroAtivo = 'concluido'"
+                    :class="['filtro-btn', { 'ativo': filtroAtivo === 'concluido' }]"
+                >
+                    <iconify-icon icon="hugeicons:tick-02" width="20" height="20"></iconify-icon>
+                    Concluídos ({{ cursosCount.concluido }})
+                </button>
+            </div>
+
             <div v-if="isLoading" class="loading">
                 Carregando cursos...
             </div>
@@ -17,18 +49,15 @@
                 {{ errorMessage }}
             </div>
 
-            <div v-else-if="cursos.length === 0" class="empty-state">
+            <div v-else-if="cursosFiltrados.length === 0" class="empty-state">
                 <iconify-icon icon="hugeicons:book-02" width="80" height="80"></iconify-icon>
-                <h3>Nenhum curso cadastrado</h3>
-                <p>Comece criando seu primeiro curso!</p>
-                <router-link to="/admin/cursos/novo" class="btn-add">
-                    <iconify-icon icon="hugeicons:book-add" width="20" height="20"></iconify-icon>
-                    Cadastrar Primeiro Curso
-                </router-link>
+                <h3>Nenhum curso encontrado</h3>
+                <p v-if="filtroAtivo === 'todos'">Comece criando seu primeiro curso!</p>
+                <p v-else>Não há cursos {{ filtroAtivo.replace('_', ' ') }}.</p>
             </div>
 
             <div v-else class="courses-grid">
-                <div v-for="curso in cursos" :key="curso._id" class="course-card">
+                <div v-for="curso in cursosFiltrados" :key="curso._id" class="course-card">
                     <div class="course-header">
                         <h3 class="course-name">{{ curso.nome }}</h3>
                         <div class="course-badges">
@@ -124,11 +153,52 @@ export default {
     data() {
         return {
             cursos: [],
+            filtroAtivo: 'todos',
             isLoading: true,
             errorMessage: '',
             showDeleteModal: false,
             courseToDelete: null
         };
+    },
+    computed: {
+        cursosFiltrados() {
+            if (this.filtroAtivo === 'todos') {
+                return this.cursos;
+            }
+            return this.cursos.filter(curso => {
+                const hoje = new Date();
+                const dataInicio = new Date(curso.dataInicio);
+                const dataTermino = new Date(curso.dataTermino);
+                
+                if (this.filtroAtivo === 'concluido') {
+                    return curso.concluido || hoje > dataTermino;
+                } else if (this.filtroAtivo === 'em_andamento') {
+                    return !curso.concluido && hoje >= dataInicio && hoje <= dataTermino;
+                } else if (this.filtroAtivo === 'vai_iniciar') {
+                    return !curso.concluido && hoje < dataInicio;
+                }
+                return true;
+            });
+        },
+        cursosCount() {
+            const hoje = new Date();
+            return {
+                todos: this.cursos.length,
+                em_andamento: this.cursos.filter(c => {
+                    const dataInicio = new Date(c.dataInicio);
+                    const dataTermino = new Date(c.dataTermino);
+                    return !c.concluido && hoje >= dataInicio && hoje <= dataTermino;
+                }).length,
+                vai_iniciar: this.cursos.filter(c => {
+                    const dataInicio = new Date(c.dataInicio);
+                    return !c.concluido && hoje < dataInicio;
+                }).length,
+                concluido: this.cursos.filter(c => {
+                    const dataTermino = new Date(c.dataTermino);
+                    return c.concluido || hoje > dataTermino;
+                }).length
+            };
+        }
     },
     mounted() {
         this.checkAdminAccess();
@@ -159,7 +229,8 @@ export default {
             try {
                 const response = await axios.get('http://localhost:3000/api/cursos/', {
                     params: {
-                        limit: 100
+                        limit: 100,
+                        status: ''  // Empty string to get all courses including completed
                     }
                 });
                 console.log('Resposta da API:', response.data);
@@ -242,7 +313,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
 }
@@ -251,6 +322,48 @@ export default {
     font-size: 2.5rem;
     font-weight: 700;
     color: #133328;
+}
+
+.filtros-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filtro-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: #f0f8f0;
+}
+
+.filtro-btn.ativo {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: white;
+}
+
+.filtro-btn.ativo iconify-icon {
+    color: white;
 }
 
 .btn-add {

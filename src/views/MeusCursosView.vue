@@ -1,7 +1,7 @@
 <template>
     <div class="meus-cursos-page">
         <div class="meus-cursos-container">
-            <h1 class="page-title">Meus Cursos</h1>
+            <h1 class="page-title">{{ isProfessor ? 'Meus Cursos (Professor)' : 'Meus Cursos' }}</h1>
 
             
             <div class="filtros-container">
@@ -50,7 +50,8 @@
             <div v-else-if="cursosFiltrados.length === 0" class="empty-state">
                 <iconify-icon icon="hugeicons:folder-open" width="80" height="80"></iconify-icon>
                 <h3>Nenhum curso encontrado</h3>
-                <p v-if="filtroAtivo === 'todos'">Você ainda não está inscrito em nenhum curso.</p>
+                <p v-if="filtroAtivo === 'todos' && isProfessor">Você ainda não está ministrando nenhum curso.</p>
+                <p v-else-if="filtroAtivo === 'todos'">Você ainda não está inscrito em nenhum curso.</p>
                 <p v-else>Não há cursos {{ filtroAtivo.replace('_', ' ') }}.</p>
                 <router-link to="/cursos" class="btn-primary">
                     <iconify-icon icon="hugeicons:search-01" width="20" height="20"></iconify-icon>
@@ -67,17 +68,27 @@
                 >
                     
                     <div class="status-badges">
-                        <span :class="['badge', `badge-${inscricao.statusCurso}`]">
-                            {{ getStatusLabel(inscricao.statusCurso) }}
-                        </span>
                         <span 
                             v-if="inscricao.cursoId.concluido" 
                             class="badge badge-curso-concluido"
                         >
-                            ✅ Curso Concluído
+                            <iconify-icon icon="hugeicons:checkmark-circle-02" width="16" height="16"></iconify-icon>
+                            Curso Concluído
                         </span>
                         <span 
-                            v-if="inscricao.status === 'Fila de Espera'" 
+                            v-else
+                            :class="['badge', `badge-${inscricao.statusCurso}`]"
+                        >
+                            {{ getStatusLabel(inscricao.statusCurso) }}
+                        </span>
+                        <span 
+                            v-if="isProfessor" 
+                            class="badge badge-professor"
+                        >
+                            Professor
+                        </span>
+                        <span 
+                            v-if="!isProfessor && inscricao.status === 'Fila de Espera'" 
                             class="badge badge-fila"
                         >
                             Fila de Espera
@@ -222,6 +233,8 @@ export default {
     data() {
         return {
             inscricoes: [],
+            cursosProfessor: [],
+            isProfessor: false,
             loading: true,
             error: '',
             filtroAtivo: 'todos',
@@ -237,17 +250,21 @@ export default {
     },
     computed: {
         cursosFiltrados() {
+            const listaCursos = this.isProfessor ? this.cursosProfessor : this.inscricoes;
+            
             if (this.filtroAtivo === 'todos') {
-                return this.inscricoes;
+                return listaCursos;
             }
-            return this.inscricoes.filter(i => i.statusCurso === this.filtroAtivo);
+            return listaCursos.filter(i => i.statusCurso === this.filtroAtivo);
         },
         cursosCount() {
+            const listaCursos = this.isProfessor ? this.cursosProfessor : this.inscricoes;
+            
             return {
-                todos: this.inscricoes.length,
-                em_andamento: this.inscricoes.filter(i => i.statusCurso === 'em_andamento').length,
-                vai_iniciar: this.inscricoes.filter(i => i.statusCurso === 'vai_iniciar').length,
-                concluido: this.inscricoes.filter(i => i.statusCurso === 'concluido').length
+                todos: listaCursos.length,
+                em_andamento: listaCursos.filter(i => i.statusCurso === 'em_andamento').length,
+                vai_iniciar: listaCursos.filter(i => i.statusCurso === 'vai_iniciar').length,
+                concluido: listaCursos.filter(i => i.statusCurso === 'concluido').length
             };
         }
     },
@@ -263,18 +280,50 @@ export default {
                     return;
                 }
 
-                const { data } = await api.get(`/inscricoes/usuario/${user._id}`);
-                
-                for (const inscricao of data) {
-                    if (inscricao.status === 'Concluido') {
-                        const { data: verificacao } = await api.get(
-                            `/avaliacoes/verificar/${inscricao.cursoId._id}/${user._id}`
-                        );
-                        inscricao.jaAvaliou = verificacao.jaAvaliou;
-                    }
-                }
+                // Verifica se é professor ou admin
+                this.isProfessor = user.nivel === 'professor' || user.nivel === 'admin';
 
-                this.inscricoes = data;
+                if (this.isProfessor) {
+                    // Busca cursos onde o usuário é instrutor
+                    const { data } = await api.get(`/cursos/instrutor/${user._id}`);
+                    
+                    // Formata os dados para ter a mesma estrutura das inscrições
+                    this.cursosProfessor = data.map(curso => {
+                        const hoje = new Date();
+                        const dataInicio = new Date(curso.dataInicio);
+                        const dataTermino = new Date(curso.dataTermino);
+                        
+                        let statusCurso = 'vai_iniciar';
+                        if (curso.concluido || hoje > dataTermino) {
+                            statusCurso = 'concluido';
+                        } else if (hoje >= dataInicio && hoje <= dataTermino) {
+                            statusCurso = 'em_andamento';
+                        }
+                        
+                        return {
+                            _id: curso._id,
+                            cursoId: curso,
+                            statusCurso: statusCurso,
+                            status: 'Professor',
+                            dataInscricao: curso.dataInicio
+                        };
+                    });
+                } else {
+                    // Busca inscrições do usuário (comportamento original)
+                    const { data } = await api.get(`/inscricoes/usuario/${user._id}`);
+                    
+                    for (const inscricao of data) {
+                        if (inscricao.status === 'Concluido') {
+                            const { data: verificacao } = await api.get(
+                                `/avaliacoes/verificar/${inscricao.cursoId._id}/${user._id}`
+                            );
+                            inscricao.jaAvaliou = verificacao.jaAvaliou;
+                        }
+                    }
+
+                    this.inscricoes = data;
+                }
+                
                 this.loading = false;
             } catch (error) {
                 console.error('Erro ao carregar cursos:', error);
@@ -535,6 +584,11 @@ export default {
     color: #7b1fa2;
 }
 
+.badge-professor {
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 600;
+}
 
 .curso-content {
     flex: 1;
@@ -836,8 +890,15 @@ export default {
 }
 
 .badge-curso-concluido {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    color: white;
-    font-weight: 700;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-curso-concluido iconify-icon {
+    color: #2e7d32;
 }
 </style>

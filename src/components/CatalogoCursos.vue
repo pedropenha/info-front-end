@@ -18,14 +18,11 @@
                 v-model:filtroFaixaEtaria="filtroFaixaEtaria"
                 v-model:filtroHorario="filtroHorario"
                 v-model:filtroStatus="filtroStatus"
+                v-model:proficienciasSelecionadas="proficienciasSelecionadas"
+                :sugestoes="sugestoesTags"
+                @aplicar-filtros="buscarCursos"
                 @limpar-filtros="limparFiltros"
             />
-            
-            <FiltroProficienciaTags 
-                v-model:modelValue="proficienciasSelecionadas"
-                @filter-changed="buscarCursos"
-                :sugestoes="sugestoesTags"  
-                />
             
             <div v-if="carregando" class="status-message loading">
                 Carregando cursos...
@@ -76,11 +73,9 @@
 
 <script>
 import axios from 'axios'; 
-import debounce from 'lodash/debounce'; 
 
 import FiltroCursos from './FiltroCursos.vue'; 
 import CursoCard from './CursoCard.vue'; 
-import FiltroProficienciaTags from './FiltroProficienciaTags.vue';
 import IARecomenda from './IARecomenda.vue';
 
 export default {
@@ -88,7 +83,6 @@ export default {
     components: {
         FiltroCursos,
         CursoCard,
-        FiltroProficienciaTags,
         IARecomenda,
     },
     data() {
@@ -135,32 +129,9 @@ export default {
     created() {
         this.carregarSugestoes();
         this.buscarCursos();
-        this.buscarCursosDebounced = debounce(this.buscarCursos, 300);
     },
     watch: {
-        buscaTermo() { 
-            this.paginaAtual = 1; 
-            this.buscarCursosDebounced(); 
-        },
-        filtroLocal() { 
-            this.paginaAtual = 1; 
-            this.buscarCursos(); 
-        },
-        filtroFaixaEtaria() { 
-            this.paginaAtual = 1; 
-            this.buscarCursos(); 
-        },
-        filtroHorario() { 
-            this.paginaAtual = 1; 
-            this.buscarCursos(); 
-        },
-        proficienciasSelecionadas: { 
-            deep: true,
-            handler() {
-                this.paginaAtual = 1; 
-                this.buscarCursos(); 
-            }
-        }
+        // Removed automatic filtering - filters now apply only when "Aplicar Filtros" button is clicked
     },
     methods: {
 
@@ -177,6 +148,7 @@ export default {
        async buscarCursos() {
             this.carregando = true;
             this.erro = null;
+            this.paginaAtual = 1; // Reset to first page when applying filters
             
             const params = new URLSearchParams();
 

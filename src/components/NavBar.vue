@@ -40,6 +40,9 @@
                     <router-link v-if="isLoggedIn" to="/perfil" class="menu-item" @click="closeMenu">
                         Meu Perfil
                     </router-link>
+                    <router-link v-if="isProfessor" to="/meus-cursos" class="menu-item" @click="closeMenu">
+                        Meus Cursos
+                    </router-link>
                     <router-link to="/sobre" class="menu-item" @click="closeMenu">
                         Sobre o Evento
                     </router-link>
@@ -85,6 +88,7 @@ export default {
             isMenuOpen: false,
             isLoggedIn: false,
             isAdmin: false,
+            isProfessor: false,
             userName: '',
             userFoto: null,
             defaultAvatar: 'https://via.placeholder.com/48x48/4e9e47/ffffff?text=U'
@@ -113,17 +117,20 @@ export default {
                     this.userName = userData.nome || 'Usuário';
                     this.userFoto = userData.foto || null;
                     this.isAdmin = userData.nivel === 'admin';
+                    this.isProfessor = userData.nivel === 'professor' || userData.nivel === 'admin';
                 } catch (error) {
                     this.isLoggedIn = false;
                     this.userName = '';
                     this.userFoto = null;
                     this.isAdmin = false;
+                    this.isProfessor = false;
                 }
             } else {
                 this.isLoggedIn = false;
                 this.userName = '';
                 this.userFoto = null;
                 this.isAdmin = false;
+                this.isProfessor = false;
             }
         },
         handleLogout() {
@@ -134,6 +141,7 @@ export default {
             this.userName = '';
             this.userFoto = null;
             this.isAdmin = false;
+            this.isProfessor = false;
             
             this.closeMenu();
             
@@ -341,6 +349,7 @@ export default {
     background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    color: white;
 }
 
 .menu-overlay {

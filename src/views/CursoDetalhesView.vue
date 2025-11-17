@@ -84,7 +84,7 @@
 
                         <div v-else>
                            
-                            <div class="avaliacoes-header">
+                            <div v-if="totalAvaliacoes > 0" class="avaliacoes-header">
                                 <div class="media-avaliacoes">
                                     <div class="estrelas-media">
                                         <iconify-icon 
@@ -185,6 +185,7 @@
                             <p class="vagas-item">📍 Local: <span class="tag tag-info">{{ curso.local }}</span></p>
                             <p class="vagas-item">⌚ Horário: {{ curso.horario }}</p>
                             <p class="vagas-item">📊 Máximo de Vagas: {{ curso.maximoVagas }}</p>
+                            <p class="vagas-item">👥 Inscritos: {{ inscritosCount }}</p>
                             
                             <p class="vagas-status" :class="statusClass">
                                 {{ statusText }}
@@ -232,6 +233,7 @@ export default {
             
             vagasDisponiveis: 0, 
             statusInscricao: 'carregando',
+            inscritosCount: 0,
             
             carregandoInscricao: false,
             mensagem: '',
@@ -242,6 +244,7 @@ export default {
             userId: null, 
             userProficiencias: [],
             isAdmin: false,
+            isProfessor: false,
             
             
             avaliacoes: [],
@@ -289,6 +292,7 @@ export default {
                 : 'Vagas Esgotadas';
         },
         actionButtonText() {
+            if (this.isProfessor) return 'VOCÊ É PROFESSOR';
             if (this.isCursoConcluido) return 'CURSO CONCLUÍDO';
             if (this.isInscricoesEncerradas) return 'INSCRIÇÕES ENCERRADAS';
             if (this.statusInscricao === 'Inscrito') return 'JÁ INSCRITO';
@@ -300,7 +304,7 @@ export default {
             return this.vagasDisponiveis > 0 ? 'Inscrever-se Agora' : 'Entrar na Fila de Espera';
         },
         isActionable() {
-            if (this.isCursoConcluido || this.isInscricoesEncerradas) return false;
+            if (this.isCursoConcluido || this.isInscricoesEncerradas || this.isProfessor) return false;
             return !!this.userId && (this.statusInscricao === 'NaoInscrito' || this.statusInscricao === 'disponivel' || this.statusInscricao === 'lotado');
         }
     },
@@ -311,6 +315,7 @@ export default {
             this.userId = userData._id || userData.id; 
             this.userProficiencias = userData.proficiencias || [];
             this.isAdmin = userData.nivel === 'admin';
+            this.isProfessor = userData.nivel === 'professor' || userData.nivel === 'admin';
         }
 
         const cursoId = this.id || this.$route.params.id; 
@@ -340,6 +345,7 @@ export default {
                 const statusResponse = await axios.get(`${this.API_BASE_URL}/inscricoes/status/${id}/${this.userId || PLACEHOLDER_ID}`);
                 this.vagasDisponiveis = statusResponse.data.vagasDisponiveis;
                 this.statusInscricao = statusResponse.data.statusUsuario;
+                this.inscritosCount = (this.curso.maximoVagas || 0) - (statusResponse.data.vagasDisponiveis || 0);
             } catch (err) {
                 console.error("Erro ao carregar detalhes do curso:", err);
                 this.erro = "Curso não encontrado.";
@@ -415,8 +421,11 @@ export default {
                     oculta: novoEstado
                 });
                 
-                avaliacao.oculta = novoEstado;
-                alert(novoEstado ? 'Avaliação ocultada.' : 'Avaliação visível novamente.');
+                // Recarregar avaliações para atualizar média e resumo
+                const cursoId = this.id || this.$route.params.id;
+                await this.carregarAvaliacoes(cursoId);
+                
+                alert(novoEstado ? 'Avaliação ocultada e resumo atualizado.' : 'Avaliação visível novamente e resumo atualizado.');
             } catch (error) {
                 console.error('Erro ao alterar visibilidade:', error);
                 alert('Erro ao processar a solicitação.');
