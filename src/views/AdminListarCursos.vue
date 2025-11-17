@@ -230,10 +230,9 @@ export default {
                 const response = await axios.get('http://localhost:3000/api/cursos/', {
                     params: {
                         limit: 100,
-                        status: ''  // Empty string to get all courses including completed
+                        status: ''
                     }
                 });
-                console.log('Resposta da API:', response.data);
                 this.cursos = response.data.cursos || [];
             } catch (error) {
                 console.error('Erro ao carregar cursos:', error);

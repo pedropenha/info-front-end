@@ -12,10 +12,12 @@
                         <label for="cpf" class="form-label">CPF</label>
                         <input 
                             v-model="formData.cpf"
+                            @input="formatarCPF"
                             type="text" 
                             id="cpf"
                             class="form-input"
                             placeholder="000.000.000-00"
+                            maxlength="14"
                             required
                         />
                     </div>
@@ -70,12 +72,30 @@ export default {
         };
     },
     methods: {
+        formatarCPF(event) {
+            let valor = event.target.value.replace(/\D/g, '');
+            
+            if (valor.length <= 11) {
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            
+            this.formData.cpf = valor;
+        },
+        
         async handleLogin() {
             this.errorMessage = '';
             this.isLoading = true;
 
             try {
-                const response = await axios.post('http://localhost:3000/api/auth/login', this.formData);
+                // Remove máscara do CPF antes de enviar
+                const cpfLimpo = this.formData.cpf.replace(/\D/g, '');
+                
+                const response = await axios.post('http://localhost:3000/api/auth/login', {
+                    cpf: cpfLimpo,
+                    senha: this.formData.senha
+                });
                 
                 
                 localStorage.setItem('user', JSON.stringify(response.data.user));
