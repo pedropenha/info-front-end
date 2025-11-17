@@ -1,7 +1,7 @@
 <template>
     <div class="admin-page">
         <div class="admin-container">
-            <h1 class="page-title">Cadastrar Novo Curso</h1>
+            <h1 class="page-title">{{ isEditMode ? 'Editar Curso' : 'Cadastrar Novo Curso' }}</h1>
 
             <div class="form-card">
                 <form @submit.prevent="handleCadastro">
@@ -78,21 +78,57 @@
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group">
-                            
+                        <div class="form-group full-width">
                             <label for="instrutores" class="form-label">
                                 <iconify-icon icon="hugeicons:teacher" width="20" height="20"></iconify-icon> Instrutores
                             </label>
-                            <input 
-                                v-model="formData.instrutores"
-                                type="text" 
-                                id="instrutores"
-                                class="form-input"
-                                placeholder="Nome dos instrutores"
-                                required
-                            />
-                        </div>
+                            
+                            <div v-if="carregandoProfessores" class="loading-professores">
+                                <iconify-icon icon="hugeicons:loading-03" width="24" height="24" class="rotating"></iconify-icon>
+                                Carregando professores...
+                            </div>
 
+                            <div v-else-if="professoresDisponiveis.length === 0" class="empty-professores">
+                                Nenhum professor disponível
+                            </div>
+
+                            <div v-else class="professores-grid">
+                                <label 
+                                    v-for="prof in professoresDisponiveis" 
+                                    :key="prof._id"
+                                    class="professor-card"
+                                    :class="{ 'selected': formData.instrutores.includes(prof._id) }"
+                                >
+                                    <input 
+                                        type="checkbox"
+                                        :value="prof._id"
+                                        v-model="formData.instrutores"
+                                        class="professor-checkbox"
+                                    />
+                                    <img 
+                                        :src="prof.foto || `https://ui-avatars.com/api/?name=${prof.nome}&background=4e9e47&color=fff`" 
+                                        :alt="prof.nome"
+                                        class="professor-avatar"
+                                    />
+                                    <div class="professor-info">
+                                        <strong class="professor-nome">{{ prof.nome }}</strong>
+                                        <span class="professor-email">{{ prof.email }}</span>
+                                        <span class="professor-nivel">{{ prof.nivel }}</span>
+                                    </div>
+                                    <iconify-icon 
+                                        icon="hugeicons:tick-02" 
+                                        class="check-icon"
+                                        width="24" 
+                                        height="24"
+                                    ></iconify-icon>
+                                </label>
+                            </div>
+
+                            <small class="form-hint">Selecione pelo menos um instrutor para o curso</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="local" class="form-label">
                                 <iconify-icon icon="hugeicons:location-01" width="20" height="20"></iconify-icon> Local
@@ -299,8 +335,8 @@
                             :disabled="isLoading"
                         >
                             <iconify-icon icon="hugeicons:tick-02" width="20" height="20"></iconify-icon>
-                            <span v-if="!isLoading">Cadastrar Curso</span>
-                            <span v-else>Cadastrando...</span>
+                            <span v-if="!isLoading">{{ isEditMode ? 'Atualizar Curso' : 'Cadastrar Curso' }}</span>
+                            <span v-else>{{ isEditMode ? 'Atualizando...' : 'Cadastrando...' }}</span>
                         </button>
 
                         <router-link to="/admin/cursos" class="btn-cancel">
@@ -318,13 +354,14 @@ import api from '@/services/api';
 
 export default {
     name: "AdminCadastrarCurso",
+    props: ['id'],
     data() {
         return {
             formData: {
                 nome: '',
                 descricao: '',
                 conteudo: '',
-                instrutores: '',
+                instrutores: [], // ← Agora é array de IDs
                 preRequisitos: '',
                 local: '',
                 publico: '',
@@ -336,6 +373,8 @@ export default {
                 dataInicio: '',
                 dataTermino: ''
             },
+            professoresDisponiveis: [],
+            carregandoProfessores: false,
             errorMessage: '',
             successMessage: '',
             isLoading: false,
@@ -345,11 +384,24 @@ export default {
                 proficiencias: { loading: false },
                 publico: { loading: false },
                 preRequisitos: { loading: false }
-            }
+            },
+            cursoId: null
         };
     },
+    computed: {
+        isEditMode() {
+            return !!this.cursoId;
+        }
+    },
     async mounted() {
+        this.cursoId = this.id || this.$route.params.id;
         this.checkAdminAccess();
+        
+        await this.carregarProfessores();
+        
+        if (this.isEditMode) {
+            await this.loadCursoData();
+        }
     },
     methods: {
         checkAdminAccess() {
@@ -369,9 +421,58 @@ export default {
             }
         },
 
+        async carregarProfessores() {
+            this.carregandoProfessores = true;
+            try {
+                const response = await api.get('/users/professores');
+                this.professoresDisponiveis = response.data;
+            } catch (error) {
+                console.error('Erro ao carregar professores:', error);
+                this.errorMessage = 'Erro ao carregar lista de professores';
+            } finally {
+                this.carregandoProfessores = false;
+            }
+        },
+
+        async loadCursoData() {
+            try {
+                const response = await api.get(`/cursos/${this.cursoId}`);
+                const curso = response.data;
+                
+                // Preencher formData com dados do curso
+                this.formData = {
+                    nome: curso.nome || '',
+                    descricao: curso.descricao || '',
+                    conteudo: curso.conteudo || '',
+                    instrutores: Array.isArray(curso.instrutores) 
+                        ? curso.instrutores.map(i => i._id || i) 
+                        : [],
+                    preRequisitos: curso.preRequisitos || '',
+                    local: curso.local || '',
+                    publico: curso.publico || '',
+                    minimoVagas: curso.minimoVagas || '',
+                    maximoVagas: curso.maximoVagas || '',
+                    horario: curso.horario || '',
+                    faixaEtaria: curso.faixaEtaria || '',
+                    proeficiencias: Array.isArray(curso.proficiencias) ? curso.proficiencias.join(', ') : '',
+                    dataInicio: curso.dataInicio ? curso.dataInicio.split('T')[0] : '',
+                    dataTermino: curso.dataTermino ? curso.dataTermino.split('T')[0] : ''
+                };
+            } catch (error) {
+                console.error('Erro ao carregar dados do curso:', error);
+                this.errorMessage = 'Erro ao carregar dados do curso';
+            }
+        },
+
         async handleCadastro() {
             this.errorMessage = '';
             this.successMessage = '';
+
+            // Validação de instrutores
+            if (!this.formData.instrutores || this.formData.instrutores.length === 0) {
+                this.errorMessage = 'Selecione pelo menos um instrutor';
+                return;
+            }
 
             // Validação de vagas
             const minVagas = parseInt(this.formData.minimoVagas);
@@ -394,31 +495,51 @@ export default {
             this.isLoading = true;
 
             try {
-                await api.post('/cursos', this.formData);
-                
-                this.successMessage = 'Curso cadastrado com sucesso!';
-                
-                // Limpar formulário
-                this.formData = {
-                    nome: '',
-                    descricao: '',
-                    conteudo: '',
-                    instrutores: '',
-                    preRequisitos: '',
-                    local: '',
-                    publico: '',
-                    minimoVagas: '',
-                    maximoVagas: '',
-                    horario: '',
-                    faixaEtaria: '',
-                    proeficiencias: '',
-                    dataInicio: '',
-                    dataTermino: ''
+                // Converter proficiências de string para array
+                const dadosParaEnviar = {
+                    ...this.formData,
+                    proficiencias: this.formData.proeficiencias 
+                        ? this.formData.proeficiencias.split(',').map(p => p.trim()).filter(p => p.length > 0)
+                        : []
                 };
+                
+                // Remover o campo com erro de digitação
+                delete dadosParaEnviar.proeficiencias;
+
+                if (this.isEditMode) {
+                    await api.put(`/cursos/${this.cursoId}`, dadosParaEnviar);
+                    this.successMessage = 'Curso atualizado com sucesso!';
+                } else {
+                    await api.post('/cursos', dadosParaEnviar);
+                    this.successMessage = 'Curso cadastrado com sucesso!';
+                }
+                
+                // Limpar formulário apenas no modo de cadastro
+                if (!this.isEditMode) {
+                    this.formData = {
+                        nome: '',
+                        descricao: '',
+                        conteudo: '',
+                        instrutores: [],
+                        preRequisitos: '',
+                        local: '',
+                        publico: '',
+                        minimoVagas: '',
+                        maximoVagas: '',
+                        horario: '',
+                        faixaEtaria: '',
+                        proeficiencias: '',
+                        dataInicio: '',
+                        dataTermino: ''
+                    };
+                }
 
                 setTimeout(() => {
                     this.successMessage = '';
-                }, 3000);
+                    if (this.isEditMode) {
+                        this.$router.push('/admin/cursos');
+                    }
+                }, 2000);
 
             } catch (error) {
                 console.error('Erro ao cadastrar curso:', error);
@@ -787,5 +908,121 @@ textarea.form-input {
 .button:disabled{
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Professores Selection */
+.loading-professores,
+.empty-professores {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.professores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.professor-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.professor-card:hover {
+    border-color: #4e9e47;
+    background: #f8fff8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 158, 71, 0.2);
+}
+
+.professor-card.selected {
+    border-color: #4e9e47;
+    background: linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%);
+    box-shadow: 0 4px 12px rgba(78, 158, 71, 0.3);
+}
+
+.professor-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.professor-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e0e0e0;
+    transition: border-color 0.3s ease;
+}
+
+.professor-card.selected .professor-avatar {
+    border-color: #4e9e47;
+}
+
+.professor-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.professor-nome {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #133328;
+}
+
+.professor-email {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.professor-nivel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #4e9e47;
+    background: #e8f5e8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.check-icon {
+    color: #4e9e47;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.professor-card.selected .check-icon {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .professores-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

@@ -26,10 +26,13 @@ export default {
 <style lang="scss">
 #app {
     font-family: Arial, sans-serif; /* Padrão do global.css */
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
 .main-content {
+  flex: 1;
   padding-top: 55px; 
 }
 </style>

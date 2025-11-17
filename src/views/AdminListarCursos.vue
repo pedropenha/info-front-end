@@ -32,6 +32,9 @@
                     <div class="course-header">
                         <h3 class="course-name">{{ curso.nome }}</h3>
                         <div class="course-badges">
+                            <span :class="['badge', 'badge-status', `badge-${curso.status.toLowerCase()}`]">
+                                {{ curso.status }}
+                            </span>
                             <span class="badge badge-publico">{{ curso.publico }}</span>
                             <span class="badge badge-vagas">
                                 {{ curso.minimoVagas }}-{{ curso.maximoVagas }} vagas
@@ -44,7 +47,15 @@
                     <div class="course-details">
                         <div class="detail-row">
                             <iconify-icon icon="hugeicons:teacher" width="18" height="18"></iconify-icon>
-                            <span>{{ curso.instrutores }}</span>
+                            <div class="instrutores-tags">
+                                <span 
+                                    v-for="instrutor in curso.instrutores" 
+                                    :key="instrutor._id"
+                                    class="tag tag-instrutor"
+                                >
+                                    {{ instrutor.nome }}
+                                </span>
+                            </div>
                         </div>
                         <div class="detail-row">
                             <iconify-icon icon="hugeicons:location-01" width="18" height="18"></iconify-icon>
@@ -68,6 +79,15 @@
                         <button @click="editCourse(curso._id)" class="btn-edit" title="Editar">
                             <iconify-icon icon="hugeicons:edit-02" width="18" height="18"></iconify-icon>
                             Editar
+                        </button>
+                        <button 
+                            v-if="!curso.concluido"
+                            @click="marcarComoConcluido(curso)" 
+                            class="btn-complete" 
+                            title="Marcar como Concluído"
+                        >
+                            <iconify-icon icon="hugeicons:checkmark-circle-02" width="18" height="18"></iconify-icon>
+                            Concluir
                         </button>
                         <button 
                             @click="confirmDelete(curso)" 
@@ -185,6 +205,25 @@ export default {
             } catch (error) {
                 console.error('Erro ao excluir curso:', error);
                 alert('Erro ao excluir curso. Tente novamente.');
+            }
+        },
+
+        async marcarComoConcluido(curso) {
+            if (!confirm(`Marcar o curso "${curso.nome}" como concluído?`)) return;
+
+            try {
+                const response = await axios.patch(`http://localhost:3000/api/cursos/${curso._id}/concluir`);
+                
+                // Atualizar o curso na lista
+                const index = this.cursos.findIndex(c => c._id === curso._id);
+                if (index !== -1) {
+                    this.cursos[index] = response.data;
+                }
+                
+                alert('Curso marcado como concluído com sucesso!');
+            } catch (error) {
+                console.error('Erro ao marcar curso como concluído:', error);
+                alert('Erro ao marcar curso como concluído. Tente novamente.');
             }
         }
     }
@@ -495,6 +534,50 @@ export default {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
+/* Badge de Status */
+.badge-status {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.badge-ativo {
+    background: linear-gradient(135deg, #4e9e47 0%, #3d7d38 100%);
+    color: white;
+}
+
+.badge-concluído {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.badge-cancelado {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+/* Botão Concluir */
+.btn-complete {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-complete:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
 @media (max-width: 768px) {
     .page-title {
         font-size: 1.8rem;
@@ -507,5 +590,21 @@ export default {
     .course-actions {
         flex-direction: column;
     }
+}
+
+/* Instrutores Tags */
+.instrutores-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-instrutor {
+    background: linear-gradient(135deg, #4e9e47 0%, #3d7d38 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 </style>

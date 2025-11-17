@@ -71,6 +71,12 @@
                             {{ getStatusLabel(inscricao.statusCurso) }}
                         </span>
                         <span 
+                            v-if="inscricao.cursoId.concluido" 
+                            class="badge badge-curso-concluido"
+                        >
+                            ✅ Curso Concluído
+                        </span>
+                        <span 
                             v-if="inscricao.status === 'Fila de Espera'" 
                             class="badge badge-fila"
                         >
@@ -829,5 +835,12 @@ export default {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(78, 158, 71, 0.4);
+}
+
+/* Badge Curso Concluído */
+.badge-curso-concluido {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    font-weight: 700;
 }
 </style>

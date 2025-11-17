@@ -20,7 +20,28 @@
 
                         <div class="detalhes-secundarios">
                             <h3 class="secao-titulo">Informações Essenciais</h3>
-                            <p class="detalhe-item">👨‍🏫 Instrutor: <span class="detalhe-valor">{{ curso.instrutores }}</span></p>
+                            
+                            <div class="instrutores-section">
+                                <p class="detalhe-item-title">👨‍🏫 Instrutores:</p>
+                                <div class="instrutores-lista">
+                                    <div 
+                                        v-for="instrutor in curso.instrutores" 
+                                        :key="instrutor._id"
+                                        class="instrutor-card-small"
+                                    >
+                                        <img 
+                                            :src="instrutor.foto || `https://ui-avatars.com/api/?name=${instrutor.nome}&background=4e9e47&color=fff`" 
+                                            :alt="instrutor.nome"
+                                            class="instrutor-avatar-small"
+                                        />
+                                        <div class="instrutor-info-small">
+                                            <strong>{{ instrutor.nome }}</strong>
+                                            <span class="instrutor-email-small">{{ instrutor.email }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <p class="detalhe-item">👥 Público Alvo: <span class="detalhe-valor">{{ curso.publico }}</span></p>
                             <p class="detalhe-item">🔞 Faixa Etária: <span class="detalhe-valor">{{ curso.faixaEtaria }}</span></p>
                            <p class="detalhe-item">Proficiências Adquiridas: 
@@ -89,18 +110,6 @@
                                         <strong>Resumo gerado por IA</strong>
                                     </div>
                                     <p class="resumo-ia-texto">{{ resumoIA }}</p>
-                                </div>
-                                <button 
-                                    v-else-if="!carregandoResumo && totalAvaliacoes > 0"
-                                    @click="gerarResumoIA"
-                                    class="btn-gerar-resumo"
-                                >
-                                    <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
-                                    Gerar resumo com IA
-                                </button>
-                                <div v-if="carregandoResumo" class="loading-resumo">
-                                    <iconify-icon icon="hugeicons:loading-03" width="20" height="20" class="rotating"></iconify-icon>
-                                    Gerando resumo...
                                 </div>
                             </div>
 
@@ -241,12 +250,28 @@ export default {
             totalAvaliacoes: 0,
             carregandoAvaliacoes: true,
             resumoIA: '',
-            carregandoResumo: false,
             defaultAvatar: 'https://ui-avatars.com/api/?name=User&background=4e9e47&color=fff'
         };
     },
     computed: {
+        isCursoConcluido() {
+            return this.curso?.concluido || false;
+        },
+        isInscricoesEncerradas() {
+            if (!this.curso?.dataInicio) return false;
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            const dataInicio = new Date(this.curso.dataInicio);
+            dataInicio.setHours(0, 0, 0, 0);
+            
+            // Inscrições encerram 1 dia antes do início
+            return hoje >= dataInicio;
+        },
         statusClass() {
+            if (this.isCursoConcluido) return 'status-concluido';
+            if (this.isInscricoesEncerradas) return 'status-encerrado';
             if (this.statusInscricao === 'Inscrito') return 'status-inscrito';
             if (this.statusInscricao === 'Fila de Espera') return 'status-fila';
             if (this.statusInscricao === 'PreRequisitoFaltando') return 'status-erro';
@@ -254,6 +279,8 @@ export default {
             return this.vagasDisponiveis > 0 ? 'status-disponivel' : 'status-lotado';
         },
         statusText() {
+            if (this.isCursoConcluido) return '🏁 Curso Concluído';
+            if (this.isInscricoesEncerradas) return '🚫 Inscrições Encerradas';
             if (this.statusInscricao === 'Inscrito') return '✅ Você está INSCRITO!';
             if (this.statusInscricao === 'Fila de Espera') return '⏳ Na FILA DE ESPERA';
             if (this.statusInscricao === 'PreRequisitoFaltando') return '❌ Pré-requisitos não atendidos';
@@ -263,6 +290,8 @@ export default {
                 : 'Vagas Esgotadas';
         },
         actionButtonText() {
+            if (this.isCursoConcluido) return 'CURSO CONCLUÍDO';
+            if (this.isInscricoesEncerradas) return 'INSCRIÇÕES ENCERRADAS';
             if (this.statusInscricao === 'Inscrito') return 'JÁ INSCRITO';
             if (this.statusInscricao === 'Fila de Espera') return 'NA FILA';
             if (this.statusInscricao === 'PreRequisitoFaltando') return 'VER PRÉ-REQUISITOS';
@@ -272,6 +301,7 @@ export default {
             return this.vagasDisponiveis > 0 ? 'Inscrever-se Agora' : 'Entrar na Fila de Espera';
         },
         isActionable() {
+            if (this.isCursoConcluido || this.isInscricoesEncerradas) return false;
             return !!this.userId && (this.statusInscricao === 'NaoInscrito' || this.statusInscricao === 'disponivel' || this.statusInscricao === 'lotado');
         }
     },
@@ -365,25 +395,12 @@ export default {
                 this.avaliacoes = data.avaliacoes;
                 this.mediaAvaliacoes = data.media;
                 this.totalAvaliacoes = data.total;
+                // Carregar resumo do cache se disponível
+                this.resumoIA = data.resumo?.texto || '';
             } catch (error) {
                 console.error('Erro ao carregar avaliações:', error);
             } finally {
                 this.carregandoAvaliacoes = false;
-            }
-        },
-
-        async gerarResumoIA() {
-            this.carregandoResumo = true;
-            try {
-                const { data } = await api.post('/gemini/resumo-avaliacoes', {
-                    avaliacoes: this.avaliacoes
-                });
-                this.resumoIA = data.resumo || '';
-            } catch (error) {
-                console.error('Erro ao gerar resumo:', error);
-                alert('Erro ao gerar resumo. Tente novamente.');
-            } finally {
-                this.carregandoResumo = false;
             }
         },
 
@@ -421,7 +438,7 @@ export default {
 .curso-content { display: flex; gap: 30px; }
 .col-main { flex: 3; }
 .col-sidebar { flex: 1; min-width: 300px; }
-.bloco-curso-principal { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); height: 100%; }
+.bloco-curso-principal { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); }
 .title-course { font-size: 2.5rem; font-weight: 700; color: var(--color-dark); margin-bottom: 0.5rem; }
 .subtitle-course { font-size: 1.1rem; color: #666; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee; }
 .bloco-secao { margin-top: 2.5rem; }
@@ -437,6 +454,8 @@ export default {
 .vagas-status.status-lotado, .vagas-status.status-erro { color: #cc0000; }
 .vagas-status.status-inscrito { color: #007bff; }
 .vagas-status.status-fila { color: orange; }
+.vagas-status.status-concluido { color: #6c757d; }
+.vagas-status.status-encerrado { color: #dc3545; }
 .btn-acao { padding: 14px 20px; font-size: 1.1rem; font-weight: 700; transition: background-color 0.3s, opacity 0.3s; }
 .btn-acao[disabled] { opacity: 0.6; cursor: not-allowed; }
 .feedback-msg { margin-top: 15px; padding: 10px; border-radius: 4px; font-weight: 500; text-align: center; }
@@ -451,12 +470,13 @@ export default {
 /* Avaliações Section */
 .avaliacoes-section {
     margin-top: 30px;
+    margin-bottom: 60px;
 }
 
 .loading-avaliacoes,
 .empty-avaliacoes {
     text-align: center;
-    padding: 3rem;
+    padding: 2rem 1.5rem;
     color: #666;
 }
 
@@ -683,5 +703,63 @@ export default {
 .avaliacao-oculta-box p {
     font-style: italic;
     margin-bottom: 1rem;
+}
+
+/* Instrutores Section */
+.instrutores-section {
+    margin-bottom: 1.5rem;
+}
+
+.detalhe-item-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+.instrutores-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.instrutor-card-small {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4e9e47;
+    transition: all 0.2s ease;
+}
+
+.instrutor-card-small:hover {
+    background: #e8f5e8;
+    transform: translateX(4px);
+}
+
+.instrutor-avatar-small {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #4e9e47;
+}
+
+.instrutor-info-small {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.instrutor-info-small strong {
+    font-size: 0.95rem;
+    color: #133328;
+}
+
+.instrutor-email-small {
+    font-size: 0.85rem;
+    color: #666;
 }
 </style>

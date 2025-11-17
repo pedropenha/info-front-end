@@ -70,6 +70,13 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
+    path: '/admin/cursos/editar/:id',
+    name: 'adminEditarCurso',
+    component: AdminCadastrarCurso,
+    props: true,
+    meta: { requiresAdmin: true }
+  },
+  {
     path: '/admin/cursos',
     name: 'adminListarCursos',
     component: AdminListarCursos,

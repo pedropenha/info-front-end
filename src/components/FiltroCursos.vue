@@ -35,6 +35,15 @@
             </select>
         </div>
 
+        <div class="select-wrapper">
+            <select :value="filtroStatus" @change="$emit('update:filtroStatus', $event.target.value)" class="select-filter">
+                <option value="">Status (Ativos)</option>
+                <option value="Ativo">Ativo</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+
         <button class="btn btn-light" @click="$emit('limpar-filtros')">
             Limpar Filtros
         </button>
@@ -48,13 +57,15 @@ export default {
         buscaTermo: { type: String, default: '' },
         filtroLocal: { type: String, default: '' },
         filtroFaixaEtaria: { type: String, default: '' }, 
-        filtroHorario: { type: String, default: '' },     
+        filtroHorario: { type: String, default: '' },
+        filtroStatus: { type: String, default: '' },
     },
     emits: [
         'update:buscaTermo', 
         'update:filtroLocal',
         'update:filtroFaixaEtaria', 
-        'update:filtroHorario',     
+        'update:filtroHorario',
+        'update:filtroStatus',
         'limpar-filtros'
     ],
 };

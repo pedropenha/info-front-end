@@ -192,7 +192,28 @@
               <div v-for="inscricao in cursosAtuais" :key="inscricao._id" class="curso-card">
                 <div class="curso-info">
                   <span class="curso-nome">{{ inscricao.cursoId.nome }}</span>
-                  <span class="curso-instrutor">Instrutor: {{ inscricao.cursoId.instrutores }}</span>
+                  
+                  <div class="curso-instrutores">
+                    <span class="label-instrutores">Instrutor(es):</span>
+                    <div class="instrutores-list">
+                      <div 
+                        v-for="instrutor in (Array.isArray(inscricao.cursoId.instrutores) ? inscricao.cursoId.instrutores : [])" 
+                        :key="typeof instrutor === 'object' ? instrutor._id : instrutor"
+                        class="instrutor-item-small"
+                      >
+                        <img 
+                          v-if="typeof instrutor === 'object' && instrutor.nome"
+                          :src="instrutor.foto || `https://ui-avatars.com/api/?name=${instrutor.nome}&background=4e9e47&color=fff`" 
+                          :alt="instrutor.nome"
+                          class="instrutor-avatar-tiny"
+                        />
+                        <span class="instrutor-nome-small">
+                          {{ typeof instrutor === 'object' && instrutor.nome ? instrutor.nome : instrutor }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <span
                     :class="['curso-status', inscricao.status.toLowerCase().replace(' ', '-')]"
                   >
@@ -224,11 +245,59 @@
               <div v-for="inscricao in cursosHistorico" :key="inscricao._id" class="curso-card curso-card-historico">
                 <div class="curso-info">
                   <span class="curso-nome">{{ inscricao.cursoId.nome }}</span>
+                  
+                  <div class="curso-instrutores">
+                    <span class="label-instrutores">Instrutor(es):</span>
+                    <div class="instrutores-list">
+                      <div 
+                        v-for="instrutor in (Array.isArray(inscricao.cursoId.instrutores) ? inscricao.cursoId.instrutores : [])" 
+                        :key="typeof instrutor === 'object' ? instrutor._id : instrutor"
+                        class="instrutor-item-small"
+                      >
+                        <img 
+                          v-if="typeof instrutor === 'object' && instrutor.nome"
+                          :src="instrutor.foto || `https://ui-avatars.com/api/?name=${instrutor.nome}&background=4e9e47&color=fff`" 
+                          :alt="instrutor.nome"
+                          class="instrutor-avatar-tiny"
+                        />
+                        <span class="instrutor-nome-small">
+                          {{ typeof instrutor === 'object' && instrutor.nome ? instrutor.nome : instrutor }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <span
                     :class="['curso-status', inscricao.status.toLowerCase().replace(' ', '-')]"
                   >
                     Status: {{ inscricao.status }}
                   </span>
+                </div>
+                
+                <div class="curso-actions" v-if="inscricao.status === 'Concluido'">
+                  <div v-if="inscricao.avaliacao" class="avaliacao-realizada">
+                    <div class="avaliacao-info">
+                      <span class="avaliacao-label">Sua avaliação:</span>
+                      <div class="stars-display">
+                        <iconify-icon 
+                          v-for="star in 5" 
+                          :key="star"
+                          icon="hugeicons:star"
+                          width="20"
+                          height="20"
+                          :class="star <= inscricao.avaliacao.nota ? 'star-filled' : 'star-empty'"
+                        ></iconify-icon>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    v-else
+                    class="btn-avaliar"
+                    @click="abrirModalAvaliacaoHistorico(inscricao)"
+                  >
+                    <iconify-icon icon="hugeicons:star" width="20" height="20"></iconify-icon>
+                    Avaliar Curso
+                  </button>
                 </div>
               </div>
             </div>
@@ -256,6 +325,69 @@
             <button class="btn-confirm-delete" @click="confirmarCancelamento" :disabled="saving">
               <span v-if="!saving">Sim, cancelar inscrição</span>
               <span v-else>Cancelando...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal de Avaliação -->
+    <transition name="modal-fade">
+      <div v-if="showAvaliacaoModal" class="confirm-modal-overlay" @click.self="fecharModalAvaliacao">
+        <div class="confirm-modal-content modal-avaliacao">
+          <h3 class="modal-title">Avaliar Curso</h3>
+          <p class="modal-subtitle">{{ cursoParaAvaliar?.cursoId?.nome }}</p>
+          
+          <div class="avaliacao-form">
+            <div class="form-group">
+              <label class="form-label">
+                <iconify-icon icon="hugeicons:star" width="20" height="20"></iconify-icon>
+                Classificação
+              </label>
+              <div class="stars-rating">
+                <iconify-icon 
+                  v-for="star in 5" 
+                  :key="star"
+                  icon="hugeicons:star"
+                  width="32"
+                  height="32"
+                  :class="['star', { 'star-filled': star <= avaliacaoForm.nota }]"
+                  @click="avaliacaoForm.nota = star"
+                ></iconify-icon>
+              </div>
+              <span class="rating-label">{{ avaliacaoForm.nota }} de 5 estrelas</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <iconify-icon icon="hugeicons:message-02" width="20" height="20"></iconify-icon>
+                Comentário (Opcional)
+              </label>
+              <textarea 
+                v-model="avaliacaoForm.comentario"
+                class="form-textarea"
+                rows="4"
+                placeholder="Compartilhe sua experiência com este curso..."
+                maxlength="500"
+              ></textarea>
+              <span class="char-count">{{ avaliacaoForm.comentario.length }}/500</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn-cancel-modal" @click="fecharModalAvaliacao" :disabled="saving">
+              Cancelar
+            </button>
+            <button 
+              class="btn-confirm-submit" 
+              @click="enviarAvaliacao" 
+              :disabled="saving || avaliacaoForm.nota === 0"
+            >
+              <span v-if="!saving">
+                <iconify-icon icon="hugeicons:tick-02" width="20" height="20"></iconify-icon>
+                Enviar Avaliação
+              </span>
+              <span v-else>Enviando...</span>
             </button>
           </div>
         </div>
@@ -294,6 +426,14 @@ export default {
       // Estados para o Modal
       showConfirmModal: false,
       inscricaoParaCancelar: null,
+
+      // Estados para Modal de Avaliação
+      showAvaliacaoModal: false,
+      cursoParaAvaliar: null,
+      avaliacaoForm: {
+        nota: 0,
+        comentario: ''
+      },
 
       novaProficiencia: '',
       defaultAvatar: 'https://via.placeholder.com/300x300/4e9e47/ffffff?text=Sem+Foto',
@@ -372,6 +512,52 @@ export default {
     fecharModalConfirmacao() {
       this.showConfirmModal = false;
       this.inscricaoParaCancelar = null;
+    },
+    abrirModalAvaliacaoHistorico(inscricao) {
+      this.cursoParaAvaliar = inscricao;
+      this.avaliacaoForm.nota = 0;
+      this.avaliacaoForm.comentario = '';
+      this.showAvaliacaoModal = true;
+    },
+    fecharModalAvaliacao() {
+      this.showAvaliacaoModal = false;
+      this.cursoParaAvaliar = null;
+      this.avaliacaoForm.nota = 0;
+      this.avaliacaoForm.comentario = '';
+    },
+    async enviarAvaliacao() {
+      if (this.avaliacaoForm.nota === 0) {
+        alert('Por favor, selecione uma classificação de 1 a 5 estrelas.');
+        return;
+      }
+
+      this.saving = true;
+      this.clearMessages();
+
+      try {
+        const userId = this.userData._id || this.userData.id;
+        const cursoId = this.cursoParaAvaliar.cursoId._id;
+
+        await axios.post('http://localhost:3000/api/avaliacoes', {
+          usuarioId: userId,
+          cursoId: cursoId,
+          nota: this.avaliacaoForm.nota,
+          comentario: this.avaliacaoForm.comentario
+        });
+
+        this.successMessage = 'Avaliação enviada com sucesso!';
+        this.flashMessage('success');
+        this.fecharModalAvaliacao();
+        
+        // Recarregar cursos para atualizar status de avaliação
+        await this.loadMeusCursos();
+      } catch (error) {
+        console.error('Erro ao enviar avaliação:', error);
+        this.errorMessage = error.response?.data?.message || 'Erro ao enviar avaliação. Tente novamente.';
+        this.flashMessage('error');
+      } finally {
+        this.saving = false;
+      }
     },
     async confirmarCancelamento() {
       this.saving = true;
@@ -985,6 +1171,48 @@ export default {
   font-weight: 600;
   color: #333;
 }
+
+.curso-instrutores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label-instrutores {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.instrutores-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.instrutor-item-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 4px 10px 4px 4px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+}
+
+.instrutor-avatar-tiny {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+}
+
+.instrutor-nome-small {
+  color: #495057;
+  font-weight: 500;
+}
+
 .curso-instrutor {
   font-size: 0.9rem;
   color: #666;
@@ -1034,6 +1262,57 @@ export default {
 .btn-desinscrever:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-avaliar {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: white;
+}
+
+.btn-avaliar:hover {
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+  transform: translateY(-2px);
+}
+
+.avaliacao-realizada {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avaliacao-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.avaliacao-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.stars-display {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.star-filled {
+  color: #ffc107;
+}
+
+.star-empty {
+  color: #ddd;
 }
 
 /* ESTILOS MODAL DE CONFIRMAÇÃO */
@@ -1118,5 +1397,110 @@ export default {
 .modal-fade-enter-from .confirm-modal-content,
 .modal-fade-leave-to .confirm-modal-content {
   transform: scale(0.9) translateY(10px);
+}
+
+/* ESTILOS MODAL DE AVALIAÇÃO */
+.modal-avaliacao {
+  max-width: 550px;
+}
+
+.modal-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.avaliacao-form {
+  margin-bottom: 2rem;
+}
+
+.avaliacao-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.avaliacao-form .form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #133328;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.stars-rating {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.star {
+  color: #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.star:hover {
+  transform: scale(1.15);
+}
+
+.star-filled {
+  color: #ffc107;
+}
+
+.rating-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.btn-confirm-submit {
+  background: linear-gradient(135deg, #4e9e47 0%, #3d7d38 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-confirm-submit:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(78, 158, 71, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-confirm-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

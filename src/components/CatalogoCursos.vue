@@ -17,6 +17,7 @@
                 v-model:filtroLocal="filtroLocal"
                 v-model:filtroFaixaEtaria="filtroFaixaEtaria"
                 v-model:filtroHorario="filtroHorario"
+                v-model:filtroStatus="filtroStatus"
                 @limpar-filtros="limparFiltros"
             />
             
@@ -102,7 +103,8 @@ export default {
 
             filtroLocal: '', 
             filtroFaixaEtaria: '', 
-            filtroHorario: '', 
+            filtroHorario: '',
+            filtroStatus: '',
             proficienciasSelecionadas: [], 
 
             // ESTADOS DE PAGINAÇÃO:
@@ -188,6 +190,7 @@ export default {
             if (this.filtroLocal) { params.append('local', this.filtroLocal); }
             if (this.filtroFaixaEtaria) { params.append('faixaEtaria', this.filtroFaixaEtaria); }
             if (this.filtroHorario) { params.append('horario', this.filtroHorario); }
+            if (this.filtroStatus) { params.append('status', this.filtroStatus); }
 
             // Adiciona PAGINAÇÃO
             params.append('page', this.paginaAtual);
@@ -221,6 +224,7 @@ export default {
             this.filtroLocal = '';
             this.filtroFaixaEtaria = '';
             this.filtroHorario = '';
+            this.filtroStatus = '';
             this.proficienciasSelecionadas = []; 
             this.paginaAtual = 1; 
             this.buscarCursos(); 
