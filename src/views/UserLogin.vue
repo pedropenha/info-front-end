@@ -77,29 +77,29 @@ export default {
             try {
                 const response = await axios.post('http://localhost:3000/api/auth/login', this.formData);
                 
-                // Armazenar token/dados do usuário
+                
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 if (response.data.token) {
                     localStorage.setItem('token', response.data.token);
                 }
                 
-                // Disparar evento para atualizar o NavBar
+                
                 window.dispatchEvent(new Event('storage'));
                 
-                // Redirecionar para página de cursos
+                
                 this.$router.push('/cursos');
                 
             } catch (error) {
                 console.error('Erro ao fazer login:', error);
                 
                 if (error.response) {
-                    // Erro da API
+
                     this.errorMessage = error.response.data.message || 'Erro ao fazer login';
                 } else if (error.request) {
-                    // Erro de rede
+                    
                     this.errorMessage = 'Erro ao conectar com o servidor';
                 } else {
-                    // Outro erro
+                    
                     this.errorMessage = 'Erro inesperado ao fazer login';
                 }
             } finally {

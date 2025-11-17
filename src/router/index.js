@@ -29,13 +29,10 @@ const routes = [
   {
     path: '/about',
     name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    component: () => import('../views/AboutView.vue')
   },
   {
-    path: '/cursos', // Rota para o catálogo
+    path: '/cursos',
     name: 'catalogoCursos',
     component: CatalogoCursosView
   },
@@ -50,7 +47,7 @@ const routes = [
     name: 'meusCursos',
     component: MeusCursosView
   },
-  // Rotas Admin
+  
   {
     path: '/admin/usuarios/novo',
     name: 'adminCadastrarUsuario',
@@ -89,7 +86,7 @@ const router = createRouter({
   routes
 })
 
-// Guard de navegação para rotas admin
+
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAdmin) {
     const user = localStorage.getItem('user');

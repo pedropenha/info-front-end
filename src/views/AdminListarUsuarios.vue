@@ -87,7 +87,6 @@
                 </div>
             </div>
 
-            <!-- Modal de Confirmação -->
             <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
                 <div class="modal-content" @click.stop>
                     <h3>Confirmar Exclusão</h3>
@@ -170,7 +169,7 @@ export default {
         },
 
         editUser(userId) {
-            // Navegar para página de edição (pode ser implementada depois)
+            
             this.$router.push(`/admin/usuarios/editar/${userId}`);
         },
 
@@ -190,7 +189,7 @@ export default {
             try {
                 await axios.delete(`http://localhost:3000/api/users/${this.userToDelete._id}`);
                 
-                // Remover da lista
+                
                 this.usuarios = this.usuarios.filter(u => u._id !== this.userToDelete._id);
                 
                 this.closeDeleteModal();
@@ -446,7 +445,6 @@ export default {
     cursor: not-allowed;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;

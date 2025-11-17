@@ -50,10 +50,10 @@ export default {
 
 <style scoped>
 .app-footer {
-    background-color: var(--color-dark); /* Fundo escuro para alto contraste */
+    background-color: var(--color-dark);
     color: white;
     padding-top: 40px;
-    border-top: 5px solid var(--color-primary); /* Linha de destaque verde */
+    border-top: 5px solid var(--color-primary); 
 }
 
 .footer-container {
@@ -67,7 +67,7 @@ export default {
 }
 
 .footer-column {
-    flex: 1 1 250px; /* Garante que as colunas ocupem espaço e quebrem se necessário */
+    flex: 1 1 250px;
     min-width: 200px;
 }
 
@@ -75,7 +75,7 @@ export default {
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 20px;
-    color: var(--color-primary); /* Destaque verde */
+    color: var(--color-primary); 
 }
 
 .text-primary {
@@ -88,7 +88,7 @@ export default {
     opacity: 0.8;
 }
 
-/* Estilos de Navegação */
+
 .footer-column ul {
     list-style: none;
 }
@@ -108,13 +108,13 @@ export default {
     opacity: 1;
 }
 
-/* Estilos de Patrocínio */
+
 .footer-patrocinio p {
     margin-bottom: 15px;
     opacity: 0.9;
 }
 .logos-placeholder .tag {
-    /* Tags reutilizadas do global.css, apenas definindo cores */
+
     margin-right: 10px;
     margin-top: 10px;
     background-color: #555;
@@ -124,12 +124,11 @@ export default {
     background-color: var(--color-primary);
 }
 
-/* Base do Footer */
 .footer-bottom {
     text-align: center;
     padding: 15px 20px;
     font-size: 0.85rem;
-    background-color: #1a1a1a; /* Fundo mais escuro */
+    background-color: #1a1a1a;
     opacity: 0.7;
 }
 

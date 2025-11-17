@@ -130,7 +130,6 @@ export default {
                 return false;
             }
 
-            // Validação básica de CPF (apenas formato)
             const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/;
             if (!cpfRegex.test(this.formData.cpf)) {
                 this.errorMessage = 'CPF inválido';
@@ -151,7 +150,7 @@ export default {
             this.isLoading = true;
 
             try {
-                // Remove confirmarSenha do objeto antes de enviar
+                
                 const userData = {
                     nome: this.formData.nome,
                     cpf: this.formData.cpf,
@@ -163,7 +162,7 @@ export default {
                 
                 this.successMessage = 'Cadastro realizado com sucesso! Redirecionando...';
                 
-                // Limpar formulário
+               
                 this.formData = {
                     nome: '',
                     cpf: '',
@@ -172,7 +171,7 @@ export default {
                     confirmarSenha: ''
                 };
 
-                // Redirecionar para login após 2 segundos
+                
                 setTimeout(() => {
                     this.$router.push('/');
                 }, 2000);
@@ -181,13 +180,13 @@ export default {
                 console.error('Erro ao fazer cadastro:', error);
                 
                 if (error.response) {
-                    // Erro da API
+
                     this.errorMessage = error.response.data.message || 'Erro ao realizar cadastro';
                 } else if (error.request) {
-                    // Erro de rede
+                    
                     this.errorMessage = 'Erro ao conectar com o servidor';
                 } else {
-                    // Outro erro
+                    
                     this.errorMessage = 'Erro inesperado ao realizar cadastro';
                 }
             } finally {

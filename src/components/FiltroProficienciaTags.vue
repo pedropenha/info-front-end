@@ -82,7 +82,7 @@ export default {
     },
     computed: {
         sugestoesDisponiveis() {
-            // Converte as tags selecionadas para o formato normalizado para comparação
+           
             const selecionadasNormalizadas = this.proficienciasSelecionadas.map(normalizarProficiencia);
             
            return this.sugestoes.filter(tag => { 
@@ -121,11 +121,9 @@ export default {
         adicionarSugestao(sugestao) {
             const termoNormalizado = normalizarProficiencia(sugestao);
             
-            // Verifica novamente se a tag (normalizada) já está na lista
             if (termoNormalizado && 
                 !this.proficienciasSelecionadas.map(normalizarProficiencia).includes(termoNormalizado)
             ) {
-                // Adiciona a tag no formato BRUTO (para manter a capitalização visual)
                 this.proficienciasSelecionadas.push(sugestao);
             }
         }
@@ -153,7 +151,7 @@ export default {
     gap: 8px;
 }
 .btn-sugestao {
-    background-color: var(--color-light-bg); /* Fundo cinza claro */
+    background-color: var(--color-light-bg);
     color: #444; 
     border: 1px solid #dcdcdc;
     padding: 6px 12px;
@@ -167,7 +165,6 @@ export default {
     border-color: #c4c4c4;
 }
 
-/* --- ESTILOS EXISTENTES (Mantidos para contexto) --- */
 .proficiencia-tag-filter {
     padding: 15px 0;
     width: 100%;

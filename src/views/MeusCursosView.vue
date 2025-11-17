@@ -3,7 +3,7 @@
         <div class="meus-cursos-container">
             <h1 class="page-title">Meus Cursos</h1>
 
-            <!-- Filtros -->
+            
             <div class="filtros-container">
                 <button 
                     @click="filtroAtivo = 'todos'"
@@ -35,18 +35,18 @@
                 </button>
             </div>
 
-            <!-- Loading State -->
+            
             <div v-if="loading" class="loading-message">
                 <iconify-icon icon="hugeicons:loading-03" width="48" height="48" class="rotating"></iconify-icon>
                 <p>Carregando seus cursos...</p>
             </div>
 
-            <!-- Error State -->
+            
             <div v-else-if="error" class="error-message">
                 {{ error }}
             </div>
 
-            <!-- Empty State -->
+           
             <div v-else-if="cursosFiltrados.length === 0" class="empty-state">
                 <iconify-icon icon="hugeicons:folder-open" width="80" height="80"></iconify-icon>
                 <h3>Nenhum curso encontrado</h3>
@@ -58,14 +58,14 @@
                 </router-link>
             </div>
 
-            <!-- Cursos List -->
+            
             <div v-else class="cursos-grid">
                 <div 
                     v-for="inscricao in cursosFiltrados" 
                     :key="inscricao._id"
                     class="curso-card"
                 >
-                    <!-- Badge de Status -->
+                    
                     <div class="status-badges">
                         <span :class="['badge', `badge-${inscricao.statusCurso}`]">
                             {{ getStatusLabel(inscricao.statusCurso) }}
@@ -84,7 +84,7 @@
                         </span>
                     </div>
 
-                    <!-- Conteúdo do Card -->
+                    
                     <div class="curso-content">
                         <h3 class="curso-nome">{{ inscricao.cursoId.nome }}</h3>
                         <p class="curso-descricao">{{ inscricao.cursoId.descricao }}</p>
@@ -105,7 +105,7 @@
                         </div>
                     </div>
 
-                    <!-- Ações -->
+                    
                     <div class="curso-actions">
                         <router-link 
                             :to="`/cursos/${inscricao.cursoId._id}`"
@@ -115,7 +115,7 @@
                             Ver Detalhes
                         </router-link>
 
-                        <!-- Botão Concluir (para cursos em andamento) -->
+                        
                         <button 
                             v-if="inscricao.statusCurso === 'em_andamento' && inscricao.status === 'Inscrito'"
                             @click="concluirCurso(inscricao)"
@@ -127,7 +127,7 @@
                             <span v-else>Processando...</span>
                         </button>
 
-                        <!-- Botão Avaliar (para cursos concluídos) -->
+                        
                         <button 
                             v-if="inscricao.status === 'Concluido' && !inscricao.jaAvaliou"
                             @click="abrirModalAvaliacao(inscricao)"
@@ -137,7 +137,7 @@
                             Avaliar Curso
                         </button>
 
-                        <!-- Já Avaliado -->
+                        
                         <div v-if="inscricao.jaAvaliou" class="ja-avaliado">
                             <iconify-icon icon="hugeicons:tick-double-02" width="20" height="20"></iconify-icon>
                             Já avaliado
@@ -147,7 +147,7 @@
             </div>
         </div>
 
-        <!-- Modal de Avaliação -->
+        
         <div v-if="modalAvaliacao.aberto" class="modal-overlay" @click.self="fecharModalAvaliacao">
             <div class="modal-content">
                 <div class="modal-header">
@@ -160,7 +160,7 @@
                 <div class="modal-body">
                     <h3 class="curso-nome-modal">{{ modalAvaliacao.curso?.cursoId?.nome }}</h3>
 
-                    <!-- Avaliação por Estrelas -->
+                    
                     <div class="avaliacao-estrelas">
                         <label>Sua avaliação:</label>
                         <div class="estrelas">
@@ -177,7 +177,7 @@
                         <p class="nota-texto">{{ modalAvaliacao.nota }} de 5 estrelas</p>
                     </div>
 
-                    <!-- Comentário -->
+                    
                     <div class="form-group">
                         <label for="mensagem">Deixe seu comentário:</label>
                         <textarea 
@@ -265,7 +265,6 @@ export default {
 
                 const { data } = await api.get(`/inscricoes/usuario/${user._id}`);
                 
-                // Verificar quais cursos já foram avaliados
                 for (const inscricao of data) {
                     if (inscricao.status === 'Concluido') {
                         const { data: verificacao } = await api.get(
@@ -344,7 +343,7 @@ export default {
                     mensagem: this.modalAvaliacao.mensagem
                 });
 
-                // Atualizar status local
+                
                 const inscricao = this.inscricoes.find(i => i._id === this.modalAvaliacao.curso._id);
                 if (inscricao) {
                     inscricao.jaAvaliou = true;
@@ -396,7 +395,7 @@ export default {
     margin-bottom: 2rem;
 }
 
-/* Filtros */
+
 .filtros-container {
     display: flex;
     gap: 1rem;
@@ -430,7 +429,7 @@ export default {
     border-color: #4e9e47;
 }
 
-/* Loading & Error */
+
 .loading-message {
     text-align: center;
     padding: 3rem;
@@ -455,7 +454,7 @@ export default {
     border-left: 4px solid #c33;
 }
 
-/* Empty State */
+
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
@@ -480,7 +479,7 @@ export default {
     margin-bottom: 2rem;
 }
 
-/* Cursos Grid */
+
 .cursos-grid {
     display: grid;
     gap: 1.5rem;
@@ -502,7 +501,7 @@ export default {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Status Badges */
+
 .status-badges {
     display: flex;
     gap: 0.5rem;
@@ -536,7 +535,7 @@ export default {
     color: #7b1fa2;
 }
 
-/* Curso Content */
+
 .curso-content {
     flex: 1;
     margin-bottom: 1rem;
@@ -574,7 +573,7 @@ export default {
     color: #4e9e47;
 }
 
-/* Actions */
+
 .curso-actions {
     display: flex;
     flex-direction: column;
@@ -647,7 +646,6 @@ export default {
     font-weight: 600;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -837,7 +835,6 @@ export default {
     box-shadow: 0 4px 12px rgba(78, 158, 71, 0.4);
 }
 
-/* Badge Curso Concluído */
 .badge-curso-concluido {
     background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
     color: white;

@@ -101,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- Modal de Confirmação -->
             <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
                 <div class="modal-content" @click.stop>
                     <h3>Confirmar Exclusão</h3>
@@ -160,7 +159,7 @@ export default {
             try {
                 const response = await axios.get('http://localhost:3000/api/cursos/', {
                     params: {
-                        limit: 100 // Carregar todos os cursos
+                        limit: 100
                     }
                 });
                 console.log('Resposta da API:', response.data);
@@ -178,7 +177,6 @@ export default {
         },
 
         editCourse(courseId) {
-            // Navegar para página de edição (pode ser implementada depois)
             this.$router.push(`/admin/cursos/editar/${courseId}`);
         },
 
@@ -198,7 +196,6 @@ export default {
             try {
                 await axios.delete(`http://localhost:3000/api/cursos/${this.courseToDelete._id}`);
                 
-                // Remover da lista
                 this.cursos = this.cursos.filter(c => c._id !== this.courseToDelete._id);
                 
                 this.closeDeleteModal();
@@ -214,7 +211,6 @@ export default {
             try {
                 const response = await axios.patch(`http://localhost:3000/api/cursos/${curso._id}/concluir`);
                 
-                // Atualizar o curso na lista
                 const index = this.cursos.findIndex(c => c._id === curso._id);
                 if (index !== -1) {
                     this.cursos[index] = response.data;
@@ -534,7 +530,6 @@ export default {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
-/* Badge de Status */
 .badge-status {
     font-weight: 700;
     text-transform: uppercase;
@@ -556,7 +551,6 @@ export default {
     color: white;
 }
 
-/* Botão Concluir */
 .btn-complete {
     background: linear-gradient(135deg, #28a745 0%, #218838 100%);
     color: white;
@@ -592,7 +586,6 @@ export default {
     }
 }
 
-/* Instrutores Tags */
 .instrutores-tags {
     display: flex;
     flex-wrap: wrap;

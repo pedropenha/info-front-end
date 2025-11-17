@@ -419,15 +419,15 @@ export default {
         foto: null,
         proficiencias: []
       },
-      // Estados dos Cursos
+    
       meusCursos: [],
       loadingCursos: true,
       
-      // Estados para o Modal
+    
       showConfirmModal: false,
       inscricaoParaCancelar: null,
 
-      // Estados para Modal de Avaliação
+ 
       showAvaliacaoModal: false,
       cursoParaAvaliar: null,
       avaliacaoForm: {
@@ -549,7 +549,7 @@ export default {
         this.flashMessage('success');
         this.fecharModalAvaliacao();
         
-        // Recarregar cursos para atualizar status de avaliação
+        
         await this.loadMeusCursos();
       } catch (error) {
         console.error('Erro ao enviar avaliação:', error);
@@ -579,7 +579,7 @@ export default {
       }
     },
     
-    // Métodos utilitários
+    
     clearMessages() {
       this.errorMessage = '';
       this.successMessage = '';
@@ -591,7 +591,7 @@ export default {
       }, 3000);
     },
 
-    // Métodos do formulário (com correção no removeFoto)
+    
     handleFileChange(event) {
       const file = event.target.files[0];
       if (file) {
@@ -726,7 +726,6 @@ export default {
 </script>
 
 <style scoped>
-/* ESTILOS DE PERFIL */
 .perfil-page {
   min-height: calc(100vh - 120px);
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -855,7 +854,6 @@ export default {
   cursor: not-allowed;
 }
 
-/* Stats do Usuário */
 .user-stats {
   display: flex;
   flex-direction: column;
@@ -887,7 +885,7 @@ export default {
   text-transform: capitalize;
 }
 
-/* Coluna 2: Formulários */
+
 .perfil-form-section {
   display: flex;
   flex-direction: column;
@@ -950,7 +948,6 @@ export default {
   color: #666;
 }
 
-/* Proficiências */
 .proficiencias-container {
   margin-top: 0.5rem;
 }
@@ -1022,7 +1019,6 @@ export default {
   color: white;
 }
 
-/* Botões de Ação */
 .form-actions {
   display: flex;
   flex-direction: column;
@@ -1071,7 +1067,6 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Mensagens de Feedback */
 .success-message,
 .error-message {
   padding: 0.75rem 1rem;
@@ -1091,7 +1086,6 @@ export default {
 }
 
 
-/* ESTILOS "MEUS CURSOS" */
 .loading-message-small {
   text-align: center;
   padding: 1rem;
@@ -1315,7 +1309,6 @@ export default {
   color: #ddd;
 }
 
-/* ESTILOS MODAL DE CONFIRMAÇÃO */
 .confirm-modal-overlay {
   position: fixed;
   top: 0;
@@ -1399,7 +1392,6 @@ export default {
   transform: scale(0.9) translateY(10px);
 }
 
-/* ESTILOS MODAL DE AVALIAÇÃO */
 .modal-avaliacao {
   max-width: 550px;
 }

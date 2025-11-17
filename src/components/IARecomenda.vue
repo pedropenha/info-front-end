@@ -128,9 +128,6 @@ export default {
 </script>
 
 <style scoped>
-/* ------------------------------------- */
-/* --- 1. ANIMAÇÃO DE PULSO (Do Loading) --- */
-/* ------------------------------------- */
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -146,9 +143,6 @@ export default {
   }
 }
 
-/* ------------------------------------- */
-/* --- 2. Estilo do Botão (FAB) --- */
-/* ------------------------------------- */
 .ia-recomendacao-wrapper {
   position: fixed;
   bottom: 25px;
@@ -161,7 +155,7 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background-color: #f07545; /* Laranja (Destaque) */
+  background-color: #f07545;
   color: white;
   border: none;
   border-radius: 50px;
@@ -192,9 +186,6 @@ export default {
   font-size: 1.2rem;
 }
 
-/* ---------------------------------- */
-/* --- 3. Estilos do Modal --- */
-/* ---------------------------------- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -265,11 +256,11 @@ export default {
 }
 
 .curso-item {
-  border: 1px solid #e0e0e0; /* Borda sutil */
-  border-radius: 12px; /* Mais arredondado */
-  padding: 24px; /* Mais preenchimento */
-  margin-bottom: 20px; /* Mais espaçamento */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra mais suave */
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 .curso-item:hover {
@@ -278,27 +269,27 @@ export default {
 }
 
 .curso-nome {
-  font-size: 1.5rem; /* Título maior */
-  /* Cor principal escura */
+  font-size: 1.5rem;
   color: var(--color-primary-dark, #133328); 
   margin-top: 0;
-  margin-bottom: 15px; /* Mais espaço */
+  margin-bottom: 15px;
+  
 }
 
 .explicacao-ia {
   display: flex;
   align-items: flex-start;
-  background-color: #fdfaf9; /* Fundo laranja bem claro */
-  border-left: 4px solid #f07545; /* Borda laranja */
+  background-color: #fdfaf9;
+  border-left: 4px solid #f07545;
   padding: 12px 15px;
-  border-radius: 8px; /* Cantos arredondados */
+  border-radius: 8px;
   margin: 20px 0;
   font-size: 0.95rem;
-  color: #5a4b44; /* Texto com tom de laranja/marrom */
+  color: #5a4b44; 
 }
 
 .explicacao-ia i {
-  color: #f07545; /* Ícone laranja */
+  color: #f07545;
   margin-right: 12px;
   font-size: 1.1rem;
   margin-top: 3px;

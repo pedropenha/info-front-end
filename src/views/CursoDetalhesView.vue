@@ -69,7 +69,6 @@
                         </div>
                     </div>
 
-                    <!-- Seção de Avaliações -->
                     <div class="bloco-curso-principal avaliacoes-section">
                         <h3 class="secao-titulo">Avaliações do Curso</h3>
                         
@@ -84,7 +83,7 @@
                         </div>
 
                         <div v-else>
-                            <!-- Média e Resumo IA -->
+                           
                             <div class="avaliacoes-header">
                                 <div class="media-avaliacoes">
                                     <div class="estrelas-media">
@@ -103,7 +102,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Resumo IA -->
+                                
                                 <div v-if="resumoIA" class="resumo-ia">
                                     <div class="resumo-ia-header">
                                         <iconify-icon icon="hugeicons:sparkles" width="20" height="20"></iconify-icon>
@@ -113,7 +112,7 @@
                                 </div>
                             </div>
 
-                            <!-- Lista de Avaliações -->
+                            
                             <div class="avaliacoes-lista">
                                 <div 
                                     v-for="avaliacao in avaliacoes" 
@@ -146,7 +145,7 @@
                                         </div>
                                         <p class="avaliacao-mensagem">{{ avaliacao.mensagem }}</p>
                                         
-                                        <!-- Botão Admin para ocultar -->
+                                        
                                         <button 
                                             v-if="isAdmin"
                                             @click="toggleOcultarAvaliacao(avaliacao)"
@@ -157,12 +156,12 @@
                                         </button>
                                     </div>
                                     
-                                    <!-- Avaliação Oculta -->
+                                    
                                     <div v-else class="avaliacao-oculta-box">
                                         <iconify-icon icon="hugeicons:eye-off" width="24" height="24"></iconify-icon>
                                         <p><em>Este comentário foi ocultado pelo professor ou coordenador.</em></p>
                                         
-                                        <!-- Botão Admin para mostrar novamente -->
+                                        
                                         <button 
                                             v-if="isAdmin"
                                             @click="toggleOcultarAvaliacao(avaliacao)"
@@ -222,7 +221,7 @@ const PLACEHOLDER_ID = '000000000000000000000000';
 
 export default {
     name: 'CursoDetalhesView',
-    props: ['id'], // O ID da rota é injetado como prop
+    props: ['id'],
 
     data() {
         return {
@@ -230,21 +229,21 @@ export default {
             carregando: true,
             erro: null,
             
-            // Variáveis de Estado de Inscrição:
+            
             vagasDisponiveis: 0, 
-            statusInscricao: 'carregando', // 'NaoInscrito', 'Inscrito', 'Fila de Espera', 'PreRequisitoFaltando'
+            statusInscricao: 'carregando',
             
             carregandoInscricao: false,
             mensagem: '',
             erroInscricao: false,
             API_BASE_URL: 'http://localhost:3000/api',
             
-            // Variáveis do usuário (Obtidas do localStorage)
+            
             userId: null, 
             userProficiencias: [],
             isAdmin: false,
             
-            // Avaliações
+            
             avaliacoes: [],
             mediaAvaliacoes: 0,
             totalAvaliacoes: 0,
@@ -266,7 +265,7 @@ export default {
             const dataInicio = new Date(this.curso.dataInicio);
             dataInicio.setHours(0, 0, 0, 0);
             
-            // Inscrições encerram 1 dia antes do início
+            
             return hoje >= dataInicio;
         },
         statusClass() {
@@ -395,7 +394,6 @@ export default {
                 this.avaliacoes = data.avaliacoes;
                 this.mediaAvaliacoes = data.media;
                 this.totalAvaliacoes = data.total;
-                // Carregar resumo do cache se disponível
                 this.resumoIA = data.resumo?.texto || '';
             } catch (error) {
                 console.error('Erro ao carregar avaliações:', error);
@@ -467,7 +465,6 @@ export default {
     .card-acao { position: static; }
 }
 
-/* Avaliações Section */
 .avaliacoes-section {
     margin-top: 30px;
     margin-bottom: 60px;
@@ -705,7 +702,6 @@ export default {
     margin-bottom: 1rem;
 }
 
-/* Instrutores Section */
 .instrutores-section {
     margin-bottom: 1.5rem;
 }

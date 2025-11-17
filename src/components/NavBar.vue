@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="menu-content">
-                    <!-- Informações do usuário logado -->
+                    
                     <div v-if="isLoggedIn" class="user-info">
                         <img 
                             :src="userFoto || defaultAvatar" 
@@ -44,7 +44,6 @@
                         Sobre o Evento
                     </router-link>
 
-                    <!-- Menu Admin - Integrado ao estilo existente -->
                     <template v-if="isAdmin">
                         <div class="admin-divider">ADMINISTRAÇÃO</div>
                         <router-link to="/admin/usuarios/novo" class="menu-item" @click="closeMenu">
@@ -63,7 +62,7 @@
                     
                     <div class="menu-spacer"></div>
 
-                    <!-- Botão de Login ou Sair -->
+                    
                     <router-link v-if="!isLoggedIn" to="/" class="menu-item btn-menu-login" @click="closeMenu">
                         Login
                     </router-link>
@@ -128,20 +127,16 @@ export default {
             }
         },
         handleLogout() {
-            // Remover dados do usuário
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             
-            // Atualizar estado
             this.isLoggedIn = false;
             this.userName = '';
             this.userFoto = null;
             this.isAdmin = false;
             
-            // Fechar menu
             this.closeMenu();
             
-            // Redirecionar para login
             this.$router.push('/');
         },
     },
@@ -150,8 +145,8 @@ export default {
 
 <style scoped>
 .app-navbar {
-    background-color: #133328; /* Fundo branco e limpo */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave de profundidade */
+    background-color: #133328;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     width: 100%;
@@ -167,19 +162,18 @@ export default {
     align-items: center;
 }
 
-/* LOGO: INFO em Verde, ESTE em Dark */
+
 .nav-brand {
     font-size: 1.8rem;
     font-weight: 800;
     text-decoration: none;
-    color: #f07545; /* Cor do texto "ESTE" */
+    color: #f07545;
 }
 
 .text-primary-brand {
-    color: white; /* Cor do texto "INFO" */
+    color: white;
 }
 
-/* --- Botão Menu Hambúrguer (Ghost Button da Imagem) --- */
 .btn-menu-toggle {
     background-color: #f07545; 
     color: white;
@@ -193,19 +187,17 @@ export default {
     align-items: center;
     gap: 8px;
     
-    /* ESTILO DA IMAGEM: Sombra projetada */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.2s;
 }
 
 .btn-menu-toggle:hover {
-    background-color: #ffc400; /* Sutilmente mais cinza no hover */
+    background-color: #ffc400;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
 }
 
 
-/* --- Menu Off-Canvas (Menu Lateral) --- */
 .off-canvas-menu {
     position: fixed;
     top: 0;
@@ -269,7 +261,6 @@ export default {
     flex-grow: 1; 
 }
 
-/* --- Divisor Admin --- */
 .admin-divider {
     padding: 15px 0;
     margin-top: 10px;
@@ -281,7 +272,6 @@ export default {
     border-bottom: 1px solid #f0f0f0;
 }
 
-/* --- Informações do usuário --- */
 .user-info {
     display: flex;
     align-items: center;
@@ -313,7 +303,6 @@ export default {
     color: #4e9e47;
 }
 
-/* --- Botão de Login (Verde) --- */
 .btn-menu-login {
     margin-top: 20px;
     padding: 12px 15px;
@@ -333,7 +322,6 @@ export default {
     box-shadow: 0 4px 12px rgba(78, 158, 71, 0.3);
 }
 
-/* --- Botão de Logout (Vermelho) --- */
 .btn-menu-logout {
     margin-top: 20px;
     padding: 12px 15px;
@@ -355,7 +343,6 @@ export default {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
-/* --- Overlay e Animação --- */
 .menu-overlay {
     position: fixed;
     top: 0;

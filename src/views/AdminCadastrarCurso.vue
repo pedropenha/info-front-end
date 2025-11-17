@@ -361,7 +361,7 @@ export default {
                 nome: '',
                 descricao: '',
                 conteudo: '',
-                instrutores: [], // ← Agora é array de IDs
+                instrutores: [],
                 preRequisitos: '',
                 local: '',
                 publico: '',
@@ -439,7 +439,6 @@ export default {
                 const response = await api.get(`/cursos/${this.cursoId}`);
                 const curso = response.data;
                 
-                // Preencher formData com dados do curso
                 this.formData = {
                     nome: curso.nome || '',
                     descricao: curso.descricao || '',
@@ -468,13 +467,10 @@ export default {
             this.errorMessage = '';
             this.successMessage = '';
 
-            // Validação de instrutores
             if (!this.formData.instrutores || this.formData.instrutores.length === 0) {
                 this.errorMessage = 'Selecione pelo menos um instrutor';
                 return;
             }
-
-            // Validação de vagas
             const minVagas = parseInt(this.formData.minimoVagas);
             const maxVagas = parseInt(this.formData.maximoVagas);
 
@@ -483,7 +479,6 @@ export default {
                 return;
             }
 
-            // Validação de datas
             const dataInicio = new Date(this.formData.dataInicio);
             const dataTermino = new Date(this.formData.dataTermino);
 
@@ -495,7 +490,6 @@ export default {
             this.isLoading = true;
 
             try {
-                // Converter proficiências de string para array
                 const dadosParaEnviar = {
                     ...this.formData,
                     proficiencias: this.formData.proeficiencias 
@@ -503,7 +497,6 @@ export default {
                         : []
                 };
                 
-                // Remover o campo com erro de digitação
                 delete dadosParaEnviar.proeficiencias;
 
                 if (this.isEditMode) {
@@ -514,7 +507,6 @@ export default {
                     this.successMessage = 'Curso cadastrado com sucesso!';
                 }
                 
-                // Limpar formulário apenas no modo de cadastro
                 if (!this.isEditMode) {
                     this.formData = {
                         nome: '',
@@ -910,7 +902,6 @@ textarea.form-input {
     cursor: not-allowed;
 }
 
-/* Professores Selection */
 .loading-professores,
 .empty-professores {
     text-align: center;

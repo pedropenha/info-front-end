@@ -72,9 +72,7 @@ export default {
 </script>
 
 <style scoped>
-/* --- Estilos do Filtros (Futurista e Minimalista com Contraste) --- */
 .filtros-wrapper {
-    /* MANTIDO o estilo de container que gera a sombra flutuante */
     display: flex;
     gap: 12px; 
     padding: 20px;
@@ -86,14 +84,12 @@ export default {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* Campos de Entrada e Seleção (Destaque e Contraste) */
 .input-search, .select-filter {
     flex-grow: 1;
     min-width: 150px; 
     padding: 12px 15px;
     border-radius: 8px;
     
-    /* CORREÇÃO DE CONTRASTE */
     background-color: #f7f7f7; 
     border: 1px solid #e5e5e5;
     box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -101,9 +97,8 @@ export default {
     transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
 }
 
-/* Estilo Chip para os Selects */
 .select-filter {
-    border-radius: 50px; /* Estilo chip */
+    border-radius: 50px; 
     background-color: white; 
     border: 1px solid var(--color-primary); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); 
@@ -114,7 +109,6 @@ export default {
     cursor: pointer;
 }
 
-/* Efeito de Foco (para ambos os tipos de campo) */
 .input-search:focus, .select-filter:focus {
     outline: none;
     border-color: var(--color-primary); 

@@ -107,7 +107,6 @@ export default {
             filtroStatus: '',
             proficienciasSelecionadas: [], 
 
-            // ESTADOS DE PAGINAÇÃO:
             paginaAtual: 1,
             limitePorPagina: 9, 
             totalPaginas: 0,
@@ -184,7 +183,7 @@ export default {
             if (this.buscaTermo) { params.append('busca', this.buscaTermo); }
 
             if (this.proficienciasSelecionadas.length > 0) {
-                params.append('proficiencias', this.proficienciasSelecionadas.join(',')); // Envia as tags como uma string separada por vírgulas
+                params.append('proficiencias', this.proficienciasSelecionadas.join(','));
             }
 
             if (this.filtroLocal) { params.append('local', this.filtroLocal); }
@@ -192,7 +191,6 @@ export default {
             if (this.filtroHorario) { params.append('horario', this.filtroHorario); }
             if (this.filtroStatus) { params.append('status', this.filtroStatus); }
 
-            // Adiciona PAGINAÇÃO
             params.append('page', this.paginaAtual);
             params.append('limit', this.limitePorPagina);
 
@@ -283,7 +281,6 @@ export default {
 </script>
 
 <style scoped>
-/* --- Estilos da Paginação --- */
 .paginacao-wrapper {
     display: flex;
     justify-content: center;
@@ -305,7 +302,6 @@ export default {
     color: var(--color-dark);
 }
 
-/* --- Layout e Container --- */
 .main-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -353,7 +349,6 @@ export default {
     transition: transform 0.5s; 
 }
 
-/* --- Status Messages --- */
 .status-message { 
     padding: 15px; 
     border-radius: 8px; 

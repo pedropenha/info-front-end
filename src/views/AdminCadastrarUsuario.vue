@@ -161,7 +161,6 @@ export default {
                 
                 this.successMessage = 'Usuário cadastrado com sucesso!';
                 
-                // Limpar formulário
                 this.formData = {
                     nome: '',
                     cpf: '',

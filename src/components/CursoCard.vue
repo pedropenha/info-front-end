@@ -31,7 +31,6 @@
                 <span class="tag tag-primary">{{ curso.faixaEtaria }}</span>
             </div>
 
-            <!-- Botão para visualizar detalhes -->
             <button 
                 class="btn btn-secondary btn-full-width" 
                 @click.stop="$emit('visualizar-detalhes', curso.id || curso._id)">
